@@ -1,0 +1,21 @@
+#!/usr/bin/env python3
+
+from sys import argv
+from json import dump
+
+lines = iter(open(argv[1]))
+
+json = {}
+
+json["name"] = next(lines).strip()
+
+json["size"], json["height"] = map(int, next(lines).strip().split())
+
+json["file"] = next(lines).strip()
+
+chars = json.setdefault("chars", [])
+count = int(next(lines))
+for i in range(count):
+	chars.append(list(map(int, next(lines).strip().split())))
+
+dump(json, open(argv[2], 'w'), indent='\t')
