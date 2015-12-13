@@ -18,8 +18,8 @@
 //
 
 
-#ifndef _LOF3_GAME_STATE_H
-#define _LOF3_GAME_STATE_H
+#ifndef _AHIE_GAME_STATE_H
+#define _AHIE_GAME_STATE_H
 
 
 #include <lair/core/lair.h>

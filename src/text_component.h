@@ -18,8 +18,8 @@
 //
 
 
-#ifndef _LOF3_TEXT_COMPONENT_H
-#define _LOF3_TEXT_COMPONENT_H
+#ifndef _AHIE_TEXT_COMPONENT_H
+#define _AHIE_TEXT_COMPONENT_H
 
 
 #include <lair/core/lair.h>

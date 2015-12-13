@@ -18,8 +18,8 @@
 //
 
 
-#ifndef _LOF3_MAIN_STATE_H
-#define _LOF3_MAIN_STATE_H
+#ifndef _AHIE_MAIN_STATE_H
+#define _AHIE_MAIN_STATE_H
 
 
 #include <vector>
@@ -61,6 +61,8 @@ class Font;
 #define MAX_DRINK 2000
 #define START_GROWTH 1000
 #define MAX_GROWTH 2000
+
+#define DAY_LENGTH 3
 
 #define DOUBLE_TAP_TIME 0.3
 
@@ -106,7 +108,7 @@ public:
 
 	EntityRef createSprite(Sprite* sprite, const char* name = nullptr);
 	EntityRef createSprite(Sprite* sprite, const Vector3& pos,
-						   const char* name = nullptr);
+	                       const char* name = nullptr);
 	EntityRef createSprite(Sprite* sprite, const Vector3& pos,
 	                       const Vector2& scale,
 	                       const char* name = nullptr);
@@ -119,6 +121,7 @@ public:
 	bool loadEffect(Effect* effect, const Json::Value& json);
 	bool loadFood(Foodstuff* foodstuff, const Json::Value& json);
 	void loadFoodSettings(const char* filename);
+	void loadMotd(const char* filename);
 	void startGame();
 
 	Foodstuff randomFood ();
@@ -180,6 +183,7 @@ public:
 	Sprite      _foodsSprite;
 
 	EntityRef   _bg;
+	EntityRef   _journal;
 	EntityRef   _character;
 	EntityRef   _foodBar;
 	EntityRef   _waterBar;
@@ -192,6 +196,10 @@ public:
 
 	State       _state;
 	uint64      _lastFrameTime;
+
+	float _timeOfDay;
+	unsigned _day, _msg;
+	Json::Value _motd;
 
 	std::vector<Foodstuff> _foodList;
 	std::vector<Foodstuff> _drinkList;

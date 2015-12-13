@@ -116,6 +116,7 @@ void MainState::initialize() {
 //	_damageAnim->onEnd = [this](_Entity* e){ _entities.destroyEntity(EntityRef(e)); };
 
 //	_bg                = createSprite(&_bgSprite, Vector3(0, 0, 0), Vector2(2, 2), "bg");
+	_journal           = createText("",Vector3(0,0,0));
 	_character         = createSprite(&_bgSprite, Vector3(0, 0, 0), "character");
 	_character.sprite()->setAnchor(Vector2(.5, 0));
 
@@ -305,10 +306,29 @@ void MainState::loadFoodSettings(const char* filename) {
 	}
 }
 
+void MainState::loadMotd(const char* filename)
+{
+	_motd.clear();
+	
+	Path path = _game->dataPath() / filename;
+	std::ifstream jsonFile(path.native());
+	
+	try {
+		jsonFile >> _motd;
+	} catch (std::exception& e) {
+		log().error("Error while parsing \"", filename, "\": ", e.what());
+		return;
+	}
+}
+
 
 void MainState::startGame() {
 	_state               = Playing;
 	_lastFrameTime       = _loop.frameTime();
+
+	_timeOfDay = 0;
+	_day = _msg = 0;
+	loadMotd("motd.json");
 
 	_drinkDelay = -1;
 	_eatDelay = -1;
@@ -341,8 +361,8 @@ void MainState::startGame() {
 
 	// Natural hunger and thirst.
 	float inf = std::numeric_limits<float>::infinity();
-	_activeEffects.push_back({FOOD,-4,inf,inf,nullptr});
-	_activeEffects.push_back({DRINK,-20,inf,inf,nullptr});
+	_activeEffects.push_back({FOOD,-60,inf,inf,nullptr});
+	_activeEffects.push_back({DRINK,-100,inf,inf,nullptr});
 }
 
 //TODO: Make these functions not-so-random.
@@ -358,20 +378,38 @@ Foodstuff MainState::randomDrink ()
 
 void MainState::updateTick() {
 	_inputs.sync();
-
+	
 	if(_debugInput->justPressed()) {
 		// Hey ! Insert debug action here !
 		startGame();
 	}
-
+	
 	if(_state == Dead)
 		return;
-
+	
 	float td = float(_loop.tickDuration()) / ONE_SEC;
-
-	int w = _game->window()->width();
-	int h = _game->window()->height();
-
+	
+	if (_timeOfDay > DAY_LENGTH)
+	{
+		if (_day > _motd.size())
+			return; //FIXME: Congratulations ! You win nothing.
+		
+		if (_drinkInput->justPressed())
+			_msg++;
+		
+		if (_msg < _motd[_day].size())
+			_texts.get(_journal)->text = _motd[_day][_msg].asString();
+		else
+		{
+			_texts.get(_journal)->text = "";
+			_day++;
+			_msg = 0;
+			_timeOfDay = 0;
+		}
+		
+		return;
+	} else _timeOfDay += td;
+	
 	for (Effect& e : _activeEffects)
 	{
 		float amount = e.changePerSecond * td;
@@ -389,14 +427,14 @@ void MainState::updateTick() {
 		}
 		e.effectDuration -= td;
 	}
-
-	//NOTE: StackOverflow comment :
-	// +20 "STL 'idioms' like this make me use Python for small projects."
+	
+	//NOTE: StackOverflow comment (+20) :
+	// "STL 'idioms' like this make me use Python for small projects."
 	_activeEffects.erase(
 		std::remove_if(_activeEffects.begin(), _activeEffects.end(),
 			[] (const Effect& e)->bool { return e.effectDuration <= 0; }),
 		_activeEffects.end());
-
+	
 	if (_eatInput->justPressed()) {
 		if (_eatDelay < 0)
 			_eatDelay = 0;
@@ -404,15 +442,14 @@ void MainState::updateTick() {
 		{
 			Vector3 pp = _foodEntities[0].transform().translation();
 			createMovingSprite(&_foodsSprite, _foodQueue.front().tileIndex,
-								pp, Vector3(- 32, pp.y(), 0), .5);
+			                   pp, Vector3(- 32, pp.y(), 0), .5);
 			_foodQueue.pop_front();
 			_foodQueueOffset += 1;
 			_foodQueue.push_back(randomFood());
 			_eatDelay = -1;
-
 		}
 	}
-
+	
 	if (_eatDelay > DOUBLE_TAP_TIME && _foodLevel < MAX_FOOD)
 	{
 		for (Effect& e : _foodQueue[0].effects)
@@ -443,16 +480,16 @@ void MainState::updateTick() {
 	{
 		for (Effect& e : _drinkQueue[0].effects)
 			_activeEffects.push_back(e);
-
+		
 		_drinkQueue.pop_front();
 		_drinkQueueOffset += 1;
 		_drinkQueue.push_back(randomDrink());
-
+		
 		_drinkDelay = -1;
 	}
 	else if (_drinkDelay >= 0)
 		_drinkDelay += td;
-
+	
 	if(_size <= 0 || _size > MAX_GROWTH || _foodLevel <= 0 || _waterLevel <= 0)
 		_state = Dead;
 
@@ -469,6 +506,8 @@ void MainState::updateFrame() {
 	_character.place(Translation(Vector3(w/2, h/4, 0))
 	               * Eigen::Scaling(_size/START_GROWTH, _size/START_GROWTH, 1.f));
 
+	_journal.place(Transform(Translation(Vector3(w/10, 9./10. * h, 1))));
+
 	_foodBar   .place(Transform(Translation(Vector3(1./4. * w, h/2, .5))));
 	_foodBarBg .place(Transform(Translation(Vector3(1./4. * w, h/2, .4))));
 	_waterBar  .place(Transform(Translation(Vector3(3./4. * w, h/2, .5))));
@@ -482,7 +521,7 @@ void MainState::updateFrame() {
 	_drinkQueueOffset = std::max(_drinkQueueOffset - QUEUE_SCROLL_SPEED * fd, 0.);
 	Vector3 foodEntityPos (1./8. * w, 1./4. * h + _foodQueueOffset  * stackOffset, .5);
 	Vector3 drinkEntityPos(7./8. * w, 1./4. * h + _drinkQueueOffset * stackOffset, .5);
-	for (int i = 0; i < FOOD_QUEUE_SIZE; ++i) {
+	for (unsigned i = 0; i < FOOD_QUEUE_SIZE; ++i) {
 		_foodEntities[i] .place(Transform(Translation(foodEntityPos)));
 		_drinkEntities[i].place(Transform(Translation(drinkEntityPos)));
 		foodEntityPos  += Vector3(0, stackOffset, 0);
@@ -503,8 +542,6 @@ void MainState::updateFrame() {
 		}
 	}
 
-	//NOTE: StackOverflow comment :
-	// +20 "STL 'idioms' like this make me use Python for small projects."
 	_movingSprites.erase(
 		std::remove_if(_movingSprites.begin(), _movingSprites.end(),
 			[] (const MovingSprite& ms)->bool { return ms.timeRemaining <= 0; }),

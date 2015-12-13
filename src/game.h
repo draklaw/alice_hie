@@ -18,8 +18,8 @@
 //
 
 
-#ifndef _LOF3_GAME_H
-#define _LOF3_GAME_H
+#ifndef _AHIE_GAME_H
+#define _AHIE_GAME_H
 
 
 #include <fstream>

@@ -18,8 +18,8 @@
 //
 
 
-#ifndef _LOF3_MENU_H
-#define _LOF3_MENU_H
+#ifndef _AHIE_MENU_H
+#define _AHIE_MENU_H
 
 
 #include <lair/core/lair.h>

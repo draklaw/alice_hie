@@ -18,8 +18,8 @@
 //
 
 
-#ifndef _LOF3_ANIMATION_COMPONENT_H
-#define _LOF3_ANIMATION_COMPONENT_H
+#ifndef _AHIE_ANIMATION_COMPONENT_H
+#define _AHIE_ANIMATION_COMPONENT_H
 
 
 #include <lair/core/lair.h>

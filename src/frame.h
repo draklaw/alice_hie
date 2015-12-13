@@ -18,8 +18,8 @@
 //
 
 
-#ifndef _LOF3_FRAME_H
-#define _LOF3_FRAME_H
+#ifndef _AHIE_FRAME_H
+#define _AHIE_FRAME_H
 
 
 #include <lair/core/lair.h>
