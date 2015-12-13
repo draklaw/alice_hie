@@ -59,6 +59,8 @@ class Font;
 #define START_GROWTH 1000
 #define MAX_GROWTH 2000
 
+#define DOUBLE_TAP_TIME 0.5
+
 enum Meter { FOOD, DRINK, GROWTH };
 
 typedef struct Effect_s Effect;
@@ -150,6 +152,8 @@ public:
 	Input*      _drinkInput;
 	Input*      _eatInput;
 	Input*      _debugInput;
+	float       _drinkDelay;
+	float       _eatDelay;
 
 	Sprite      _bgSprite;
 	Sprite      _characterSprite;
@@ -168,7 +172,7 @@ public:
 
 	State       _state;
 
-	std::vector<Foodstuff> _foodstuffs;
+// 	std::vector<Foodstuff> _foodstuffs;
 	std::vector<Foodstuff> _foodList;
 	std::vector<Foodstuff> _drinkList;
 

@@ -287,6 +287,9 @@ void MainState::loadFoodSettings(const char* filename) {
 void MainState::startGame() {
 	_state               = Playing;
 
+	_drinkDelay = -1;
+	_eatDelay = -1;
+
 	loadFoodSettings("food.json");
 
 	_foodLevel           = MAX_FOOD;
@@ -295,19 +298,9 @@ void MainState::startGame() {
 
 	_activeEffects = std::vector<Effect>();
 
-	//FIXME: Temporary chicken test (cluck-cluck).
-//	Foodstuff chicken = {FOOD,std::vector<Effect>()};
-//	chicken.effects.push_back({FOOD,-0.1,5,5,&chicken});
-//	chicken.effects.push_back({GROWTH,0.1,10,10,&chicken});
-	
-//	_foodstuffs.push_back(chicken);
-	
-//	for (Effect e : chicken.effects)
-//		_activeEffects.push_back(e);
-	
 	// Natural hunger and thirst.
-	_activeEffects.push_back({FOOD,-10,INFINITY,INFINITY,nullptr});
-	_activeEffects.push_back({DRINK,-100,INFINITY,INFINITY,nullptr});
+	_activeEffects.push_back({FOOD,-4,INFINITY,INFINITY,nullptr});
+	_activeEffects.push_back({DRINK,-20,INFINITY,INFINITY,nullptr});
 }
 
 
@@ -351,16 +344,52 @@ void MainState::updateTick() {
 		_activeEffects.end());
 	
 	if (_eatInput->justPressed()) {
+		if (_eatDelay < 0)
+			_eatDelay = 0;
+		else if (_eatDelay < DOUBLE_TAP_TIME)
+		{
+			log().info("Double food tap.");
+			_eatDelay = -1;
+			
+		}
+	}
+	
+	if (_eatDelay > DOUBLE_TAP_TIME)
+	{
+		log().info("Simple food tap.");
+		
 		int i = rand()%_foodList.size();
 		for (Effect& e : _foodList[i].effects)
 			_activeEffects.push_back(e);
+		
+		_eatDelay = -1;
 	}
+	else if (_eatDelay >= 0)
+		_eatDelay += td;
 	
 	if (_drinkInput->justPressed()) {
+		if (_drinkDelay < 0)
+			_drinkDelay = 0;
+		else if (_drinkDelay < DOUBLE_TAP_TIME)
+		{
+			log().info("Double drink tap.");
+			_drinkDelay = -1;
+			
+		}
+	}
+	
+	if (_drinkDelay > DOUBLE_TAP_TIME)
+	{
+		log().info("Simple drink tap.");
+		
 		int i = rand()%_drinkList.size();
 		for (Effect& e : _drinkList[i].effects)
 			_activeEffects.push_back(e);
+		
+		_drinkDelay = -1;
 	}
+	else if (_drinkDelay >= 0)
+		_drinkDelay += td;
 
 	if(_size <= 0 || _size > MAX_GROWTH || _foodLevel <= 0 || _waterLevel <= 0)
 		_state = Dead;
