@@ -54,6 +54,11 @@ class Game;
 class Font;
 
 
+#define MAX_FOOD 2000
+#define MAX_DRINK 2000
+#define START_GROWTH 1000
+#define MAX_GROWTH 2000
+
 enum Meter { FOOD, DRINK, GROWTH };
 
 typedef struct Effect_s Effect;
@@ -173,19 +178,9 @@ public:
 	float       _foodLevel;
 	float       _waterLevel;
 	float       _size;
-// 	float       _sizeGrowthRemaining;
-// 	float       _sizeDecayRemaining;
 
 	std::vector<Effect> _activeEffects;
 
-// 	float       _foodDecayPerSecond;
-// 	float       _foodPower;
-// 	float       _foodSizeGrowth;
-// 	float       _waterDecayPerSecond;
-// 	float       _waterPower;
-// 	float       _waterSizeDecay;
-// 	float       _sizeGrowthPerSecond;
-// 	float       _sizeDecayPerSecond;
 };
 
 

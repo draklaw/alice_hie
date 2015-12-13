@@ -224,7 +224,7 @@ bool MainState::loadEffect(Effect* effect, const Json::Value& json) {
 	else throw std::runtime_error("Unknown effect type "+type);
 
 	effect->changePerSecond = json["cps"].asFloat();
-	effect->totalDuration   = json["totalDuration"].asFloat();
+	effect->totalDuration   = json["duration"].asFloat();
 
 	return true;
 }
@@ -241,6 +241,7 @@ bool MainState::loadFood(Foodstuff* foodstuff, const Json::Value& json) {
 	for(const Json::Value& value: json["effects"]) {
 		if(loadEffect(&effect, value)) {
 			effect.source = foodstuff;
+			effect.effectDuration = effect.totalDuration;
 			foodstuff->effects.push_back(effect);
 		}
 	}
@@ -288,9 +289,9 @@ void MainState::startGame() {
 
 	loadFoodSettings("food.json");
 
-	_foodLevel           = 1;
-	_waterLevel          = 1;
-	_size                = 1;
+	_foodLevel           = MAX_FOOD;
+	_waterLevel          = MAX_DRINK;
+	_size                = START_GROWTH;
 
 	_activeEffects = std::vector<Effect>();
 
@@ -305,8 +306,8 @@ void MainState::startGame() {
 //		_activeEffects.push_back(e);
 	
 	// Natural hunger and thirst.
-	_activeEffects.push_back({FOOD,-0.001,INFINITY,INFINITY,nullptr});
-	_activeEffects.push_back({DRINK,-0.01,INFINITY,INFINITY,nullptr});
+	_activeEffects.push_back({FOOD,-10,INFINITY,INFINITY,nullptr});
+	_activeEffects.push_back({DRINK,-100,INFINITY,INFINITY,nullptr});
 }
 
 
@@ -349,30 +350,22 @@ void MainState::updateTick() {
 			[] (Effect e)->bool { return e.effectDuration <= 0; }),
 		_activeEffects.end());
 	
-// 	_foodLevel  -= _foodDecayPerSecond  * td;
-// 	_waterLevel -= _waterDecayPerSecond * td;
-// 
-// 	if(_eatInput->justPressed()) {
-// 		_foodLevel            = std::min(_foodLevel  + _foodPower,  1.f);
-// 		_sizeGrowthRemaining += _foodSizeGrowth;
-// 	}
-// 	if(_drinkInput->justPressed()) {
-// 		_waterLevel           = std::min(_waterLevel + _waterPower, 1.f);
-// 		_sizeDecayRemaining  += _waterSizeDecay;
-// 	}
-// 
-// 	float growth = std::min(_sizeGrowthRemaining, _sizeGrowthPerSecond * td);
-// 	float decay  = std::min(_sizeDecayRemaining,  _sizeDecayPerSecond  * td);
-// 
-// 	_size += growth - decay;
-// 
-// 	_sizeGrowthRemaining -= growth;
-// 	_sizeDecayRemaining  -= decay;
+	if (_eatInput->justPressed()) {
+		int i = rand()%_foodList.size();
+		for (Effect& e : _foodList[i].effects)
+			_activeEffects.push_back(e);
+	}
+	
+	if (_drinkInput->justPressed()) {
+		int i = rand()%_drinkList.size();
+		for (Effect& e : _drinkList[i].effects)
+			_activeEffects.push_back(e);
+	}
 
-	if(_size <= 0 || _size > 3 || _foodLevel <= 0 || _waterLevel <= 0)
+	if(_size <= 0 || _size > MAX_GROWTH || _foodLevel <= 0 || _waterLevel <= 0)
 		_state = Dead;
 
-	//log().info("food: ", _foodLevel, ", water: ", _waterLevel, ", size: ", _size);
+// 	log().info("food: ", _foodLevel, ", water: ", _waterLevel, ", size: ", _size);
 }
 
 
@@ -381,15 +374,15 @@ void MainState::updateFrame() {
 	int h = _game->window()->height();
 
 	_character.place(Translation(Vector3(w/2, h/4, 0))
-				   * Eigen::Scaling(_size, _size, 1.f));
+	               * Eigen::Scaling(_size/START_GROWTH, _size/START_GROWTH, 1.f));
 
 	_foodBar   .place(Transform(Translation(Vector3(1./4. * w, h/2, .5))));
 	_foodBarBg .place(Transform(Translation(Vector3(1./4. * w, h/2, .4))));
 	_waterBar  .place(Transform(Translation(Vector3(3./4. * w, h/2, .5))));
 	_waterBarBg.place(Transform(Translation(Vector3(3./4. * w, h/2, .4))));
 
-	_foodBar .sprite()->setView(Box2(Vector2(0, 0), Vector2(1, _foodLevel)));
-	_waterBar.sprite()->setView(Box2(Vector2(0, 0), Vector2(1, _waterLevel)));
+	_foodBar .sprite()->setView(Box2(Vector2(0, 0), Vector2(1, _foodLevel / MAX_FOOD)));
+	_waterBar.sprite()->setView(Box2(Vector2(0, 0), Vector2(1, _waterLevel / MAX_DRINK)));
 
 	// Rendering
 
