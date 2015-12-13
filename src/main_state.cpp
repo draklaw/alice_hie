@@ -299,8 +299,9 @@ void MainState::startGame() {
 	_activeEffects = std::vector<Effect>();
 
 	// Natural hunger and thirst.
-	_activeEffects.push_back({FOOD,-4,INFINITY,INFINITY,nullptr});
-	_activeEffects.push_back({DRINK,-20,INFINITY,INFINITY,nullptr});
+	float inf = std::numeric_limits<float>::infinity();
+	_activeEffects.push_back({FOOD,-4,inf,inf,nullptr});
+	_activeEffects.push_back({DRINK,-20,inf,inf,nullptr});
 }
 
 
@@ -334,7 +335,7 @@ void MainState::updateTick() {
 		}
 		e.effectDuration -= td;
 	}
-	
+
 	//NOTE: StackOverflow comment :
 	// +20 "STL 'idioms' like this make me use Python for small projects."
 	std::vector<Effect> v = _activeEffects;
@@ -342,7 +343,7 @@ void MainState::updateTick() {
 		std::remove_if(_activeEffects.begin(), _activeEffects.end(),
 			[] (Effect e)->bool { return e.effectDuration <= 0; }),
 		_activeEffects.end());
-	
+
 	if (_eatInput->justPressed()) {
 		if (_eatDelay < 0)
 			_eatDelay = 0;
@@ -350,23 +351,23 @@ void MainState::updateTick() {
 		{
 			log().info("Double food tap.");
 			_eatDelay = -1;
-			
+
 		}
 	}
-	
+
 	if (_eatDelay > DOUBLE_TAP_TIME)
 	{
 		log().info("Simple food tap.");
-		
+
 		int i = rand()%_foodList.size();
 		for (Effect& e : _foodList[i].effects)
 			_activeEffects.push_back(e);
-		
+
 		_eatDelay = -1;
 	}
 	else if (_eatDelay >= 0)
 		_eatDelay += td;
-	
+
 	if (_drinkInput->justPressed()) {
 		if (_drinkDelay < 0)
 			_drinkDelay = 0;
@@ -374,18 +375,18 @@ void MainState::updateTick() {
 		{
 			log().info("Double drink tap.");
 			_drinkDelay = -1;
-			
+
 		}
 	}
-	
+
 	if (_drinkDelay > DOUBLE_TAP_TIME)
 	{
 		log().info("Simple drink tap.");
-		
+
 		int i = rand()%_drinkList.size();
 		for (Effect& e : _drinkList[i].effects)
 			_activeEffects.push_back(e);
-		
+
 		_drinkDelay = -1;
 	}
 	else if (_drinkDelay >= 0)
