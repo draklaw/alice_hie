@@ -1,6 +1,7 @@
 [
 { // Poulet
 	"type": "food",
+	"tileIndex": 1,
 	"effects": [
 		{
 			"type":     "food",
@@ -16,6 +17,7 @@
 },
 { // Frites salées
 	"type": "food",
+	"tileIndex": 2,
 	"effects": [
 		{
 			"type":     "food",
@@ -36,6 +38,7 @@
 },
 { // Choucroute melba
 	"type": "food",
+	"tileIndex": 3,
 	"effects": [
 		{
 			"type":     "food",
@@ -56,6 +59,7 @@
 },
 { // Pain sec
 	"type": "food",
+	"tileIndex": 4,
 	"effects": [
 		{
 			"type":     "food",
@@ -71,6 +75,7 @@
 },
 { // Champignon bleu (croissance)
 	"type": "food",
+	"tileIndex": 5,
 	"effects": [
 		{
 			"type":     "food",
@@ -86,6 +91,7 @@
 },
 { // Champignon rouge (rétrécissement)
 	"type": "food",
+	"tileIndex": 6,
 	"effects": [
 		{
 			"type":     "food",
@@ -101,6 +107,7 @@
 },
 { // Eau minérale
 	"type": "drink",
+	"tileIndex": 17,
 	"effects": [
 		{
 			"type":     "drink",
@@ -116,6 +123,7 @@
 },
 { // Eau de mer
 	"type": "drink",
+	"tileIndex": 18,
 	"effects": [
 		{
 			"type":     "drink",
@@ -136,6 +144,7 @@
 },
 { // Soda
 	"type": "drink",
+	"tileIndex": 19,
 	"effects": [
 		{
 			"type":     "drink",
@@ -156,6 +165,7 @@
 },
 { // Sirop d'érable
 	"type": "drink",
+	"tileIndex": 20,
 	"effects": [
 		{
 			"type":     "drink",

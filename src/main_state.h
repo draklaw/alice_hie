@@ -54,6 +54,8 @@ class Game;
 class Font;
 
 
+#define FOOD_QUEUE_SIZE 10
+
 #define MAX_FOOD 2000
 #define MAX_DRINK 2000
 #define START_GROWTH 1000
@@ -76,6 +78,7 @@ struct Effect_s {
 
 struct Foodstuff_s {
 	Meter type;                  // Should be FOOD or DRINK.
+	int tileIndex;
 	std::vector<Effect> effects; // List of triggered effects.
 };
 
@@ -160,6 +163,7 @@ public:
 	Sprite      _foodBarSprite;
 	Sprite      _waterBarSprite;
 	Sprite      _barBgSprite;
+	Sprite      _foodsSprite;
 
 	EntityRef   _bg;
 	EntityRef   _character;
@@ -167,6 +171,8 @@ public:
 	EntityRef   _waterBar;
 	EntityRef   _foodBarBg;
 	EntityRef   _waterBarBg;
+	std::vector<EntityRef> _foodEntities;
+	std::vector<EntityRef> _drinkEntities;
 
 	// Game states
 

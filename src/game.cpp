@@ -34,9 +34,9 @@
 Game::Game(int argc, char** argv)
     : _mlogger(),
       _logStream("log.txt"),
-#ifndef _WIN32
+//#ifndef _WIN32
       _stdlogBackend(std::clog, true),
-#endif
+//#endif
       _fileBackend(_logStream, false),
       _logger("game", &_mlogger, DEFAULT_LOG_LEVEL),
 
@@ -54,9 +54,9 @@ Game::Game(int argc, char** argv)
       _currentState(nullptr),
 
       _mainState(nullptr) {
-#ifndef _WIN32
+//#ifndef _WIN32
 	_mlogger.addBackend(&_stdlogBackend);
-#endif
+//#endif
 	_mlogger.addBackend(&_fileBackend);
 	dbgLogger.setMaster(&_mlogger);
 	dbgLogger.setDefaultModuleName("DEBUG");

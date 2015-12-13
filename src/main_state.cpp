@@ -106,6 +106,7 @@ void MainState::initialize() {
 	_foodBarSprite     = loadSprite("food_bar.png");
 	_waterBarSprite    = loadSprite("water_bar.png");
 	_barBgSprite       = loadSprite("bar_bg.png");
+	_foodsSprite       = loadSprite("foods.png", 8, 4);
 
 //	_music1      = _game->audio()->loadMusic(_game->dataPath() / "music1.ogg");
 
@@ -126,6 +127,14 @@ void MainState::initialize() {
 	_waterBar  .sprite()->setAnchor(Vector2(.5, .5));
 	_foodBarBg .sprite()->setAnchor(Vector2(.5, .5));
 	_waterBarBg.sprite()->setAnchor(Vector2(.5, .5));
+
+	for(int i = 0; i < FOOD_QUEUE_SIZE; ++i) {
+		_foodEntities .push_back(createSprite(&_foodsSprite));
+		_drinkEntities.push_back(createSprite(&_foodsSprite));
+
+		_foodEntities .back().sprite()->setAnchor(Vector2(.5, .5));
+		_drinkEntities.back().sprite()->setAnchor(Vector2(.5, .5));
+	}
 
 	_initialized = true;
 }
@@ -235,6 +244,8 @@ bool MainState::loadFood(Foodstuff* foodstuff, const Json::Value& json) {
 	if     (type == "food")  foodstuff->type = FOOD;
 	else if(type == "drink") foodstuff->type = DRINK;
 	else throw std::runtime_error("Unknown foodstuff type "+type);
+
+	foodstuff->tileIndex = json.get("tileIndex", 0).asInt();
 
 	foodstuff->effects.clear();
 	Effect effect;
@@ -413,6 +424,17 @@ void MainState::updateFrame() {
 
 	_foodBar .sprite()->setView(Box2(Vector2(0, 0), Vector2(1, _foodLevel / MAX_FOOD)));
 	_waterBar.sprite()->setView(Box2(Vector2(0, 0), Vector2(1, _waterLevel / MAX_DRINK)));
+
+	Vector3 foodEntityPos(1./8. * w, 1./4. * h, .5);
+	Vector3 drinkEntityPos(7./8. * w, 1./4. * h, .5);
+	for(int i = 0; i < FOOD_QUEUE_SIZE; ++i) {
+		_foodEntities[i] .place(Transform(Translation(foodEntityPos)));
+		_drinkEntities[i].place(Transform(Translation(drinkEntityPos)));
+		foodEntityPos  += Vector3(0, 40, 0);
+		drinkEntityPos += Vector3(0, 40, 0);
+		_foodEntities[i] .sprite()->setIndex(i);
+		_drinkEntities[i].sprite()->setIndex(i+16);
+	}
 
 	// Rendering
 

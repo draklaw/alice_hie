@@ -75,9 +75,9 @@ public:
 protected:
 	MasterLogger  _mlogger;
 	std::ofstream _logStream;
-#ifndef _WIN32
+//#ifndef _WIN32
 	OStreamLogger _stdlogBackend;
-#endif
+//#endif
 	OStreamLogger _fileBackend;
 	Logger        _logger;
 
