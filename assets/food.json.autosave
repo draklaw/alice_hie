@@ -1,0 +1,17 @@
+[
+{
+    "type": "food",
+    "effects": [
+        {
+            "type":     "food",
+            "cps":      30,
+            "duration": 10
+        },
+        {
+            "type":     "growth",
+            "cps":      30,
+            "duration": 10
+        }
+    ]
+}
+]

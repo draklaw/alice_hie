@@ -97,6 +97,9 @@ public:
 	EntityRef createText(const std::string& msg, const Vector3& pos,
 	                     const Vector4& color = Vector4(1, 1, 1, 1));
 
+	bool loadEffect(Effect* effect, const Json::Value& json);
+	bool loadFood(Foodstuff* foodstuff, const Json::Value& json);
+	void loadFoodSettings(const char* filename);
 	void startGame();
 
 	void updateTick();
@@ -161,6 +164,11 @@ public:
 	State       _state;
 
 	std::vector<Foodstuff> _foodstuffs;
+	std::vector<Foodstuff> _foodList;
+	std::vector<Foodstuff> _drinkList;
+
+	std::deque<Foodstuff> _foodQueue;
+	std::deque<Foodstuff> _drinkQueue;
 
 	float       _foodLevel;
 	float       _waterLevel;

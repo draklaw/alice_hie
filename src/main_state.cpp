@@ -216,41 +216,97 @@ EntityRef MainState::createText(const std::string& text, const Vector3& pos,
 }
 
 
+bool MainState::loadEffect(Effect* effect, const Json::Value& json) {
+	std::string type = json["type"].asString();
+	if     (type == "food")   effect->type = FOOD;
+	else if(type == "drink")  effect->type = DRINK;
+	else if(type == "growth") effect->type = GROWTH;
+	else throw std::runtime_error("Unknown effect type "+type);
+
+	effect->changePerSecond = json["cps"].asFloat();
+	effect->totalDuration   = json["totalDuration"].asFloat();
+
+	return true;
+}
+
+
+bool MainState::loadFood(Foodstuff* foodstuff, const Json::Value& json) {
+	std::string type = json["type"].asString();
+	if     (type == "food")  foodstuff->type = FOOD;
+	else if(type == "drink") foodstuff->type = DRINK;
+	else throw std::runtime_error("Unknown foodstuff type "+type);
+
+	foodstuff->effects.clear();
+	Effect effect;
+	for(const Json::Value& value: json["effects"]) {
+		if(loadEffect(&effect, value)) {
+			effect.source = foodstuff;
+			foodstuff->effects.push_back(effect);
+		}
+	}
+	return true;
+}
+
+
+void MainState::loadFoodSettings(const char* filename) {
+	_foodList.clear();
+	_drinkList.clear();
+
+	Path path = _game->dataPath() / filename;
+	std::ifstream jsonFile(path.native());
+	Json::Value json;
+	try {
+		jsonFile >> json;
+	} catch(std::exception& e) {
+		log().error("Error while parsing \"", filename, "\": ", e.what());
+		return;
+	}
+
+	Foodstuff foodstuff;
+	for(const Json::Value& food: json) {
+		bool ok;
+		try {
+			ok = loadFood(&foodstuff, food);
+		} catch(std::exception& e) {
+			log().error("Error while parsing \"", filename, "\": ", e.what());
+			return;
+		}
+
+		if(ok) {
+			if(foodstuff.type == FOOD) {
+				_foodList.push_back(foodstuff);
+			} else {
+				_drinkList.push_back(foodstuff);
+			}
+		}
+	}
+}
+
+
 void MainState::startGame() {
 	_state               = Playing;
 
-	_foodstuffs = std::vector<Foodstuff>();
+	loadFoodSettings("food.json");
 
 	_foodLevel           = 1;
 	_waterLevel          = 1;
 	_size                = 1;
-// 	_sizeGrowthRemaining = 0;
-// 	_sizeDecayRemaining  = 0;
 
 	_activeEffects = std::vector<Effect>();
 
 	//FIXME: Temporary chicken test (cluck-cluck).
-	Foodstuff chicken = {FOOD,std::vector<Effect>()};
-	chicken.effects.push_back({FOOD,-0.1,5,5,&chicken});
-	chicken.effects.push_back({GROWTH,0.1,10,10,&chicken});
+//	Foodstuff chicken = {FOOD,std::vector<Effect>()};
+//	chicken.effects.push_back({FOOD,-0.1,5,5,&chicken});
+//	chicken.effects.push_back({GROWTH,0.1,10,10,&chicken});
 	
-	_foodstuffs.push_back(chicken);
+//	_foodstuffs.push_back(chicken);
 	
-	for (Effect e : chicken.effects)
-		_activeEffects.push_back(e);
+//	for (Effect e : chicken.effects)
+//		_activeEffects.push_back(e);
 	
 	// Natural hunger and thirst.
 	_activeEffects.push_back({FOOD,-0.001,INFINITY,INFINITY,nullptr});
 	_activeEffects.push_back({DRINK,-0.01,INFINITY,INFINITY,nullptr});
-
-// 	_foodDecayPerSecond  = 0.05;
-// 	_foodPower           = 0.4;
-// 	_foodSizeGrowth      = 0.3;
-// 	_waterDecayPerSecond = 0.1;
-// 	_waterPower          = 0.4;
-// 	_waterSizeDecay      = 0.2;
-// 	_sizeGrowthPerSecond = 0.6;
-// 	_sizeDecayPerSecond  = 1.0;
 }
 
 
