@@ -11,7 +11,7 @@
 		{
 			"type":     "growth",
 			"cps":      30,
-			"duration": 10
+			"duration": 20
 		}
 	]
 },
@@ -32,7 +32,7 @@
 		{
 			"type":     "growth",
 			"cps":      15,
-			"duration": 10
+			"duration": 20
 		}
 	]
 },
@@ -53,7 +53,7 @@
 		{
 			"type":     "growth",
 			"cps":      30,
-			"duration": 15
+			"duration": 30
 		}
 	]
 },
@@ -69,7 +69,7 @@
 		{
 			"type":     "growth",
 			"cps":      20,
-			"duration": 5
+			"duration": 10
 		}
 	]
 },
@@ -84,7 +84,7 @@
 		},
 		{
 			"type":     "growth",
-			"cps":      80,
+			"cps":      100,
 			"duration": 5
 		}
 	]
@@ -95,12 +95,12 @@
 	"effects": [
 		{
 			"type":     "food",
-			"cps":      -15,
+			"cps":      15,
 			"duration": 10
 		},
 		{
 			"type":     "growth",
-			"cps":      80,
+			"cps":      -100,
 			"duration": 5
 		}
 	]

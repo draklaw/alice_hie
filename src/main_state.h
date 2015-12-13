@@ -61,7 +61,7 @@ class Font;
 #define START_GROWTH 1000
 #define MAX_GROWTH 2000
 
-#define DOUBLE_TAP_TIME 0.5
+#define DOUBLE_TAP_TIME 0.3
 
 enum Meter { FOOD, DRINK, GROWTH };
 
@@ -73,7 +73,7 @@ struct Effect_s {
 	float changePerSecond; // Impact on meter (units/s).
 	float effectDuration;  // Remaining duration (s).
 	float totalDuration;   // Total duration (s).
-	Foodstuff* source;      // Source of the effect.
+	Foodstuff* source;     // Source of the effect.
 };
 
 struct Foodstuff_s {
@@ -111,6 +111,9 @@ public:
 	bool loadFood(Foodstuff* foodstuff, const Json::Value& json);
 	void loadFoodSettings(const char* filename);
 	void startGame();
+
+	Foodstuff randomFood ();
+	Foodstuff randomDrink ();
 
 	void updateTick();
 	void updateFrame();
@@ -178,7 +181,6 @@ public:
 
 	State       _state;
 
-// 	std::vector<Foodstuff> _foodstuffs;
 	std::vector<Foodstuff> _foodList;
 	std::vector<Foodstuff> _drinkList;
 

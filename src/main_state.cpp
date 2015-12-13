@@ -301,11 +301,26 @@ void MainState::startGame() {
 	_drinkDelay = -1;
 	_eatDelay = -1;
 
+	srand(time(nullptr));
 	loadFoodSettings("food.json");
 
 	_foodLevel           = MAX_FOOD;
 	_waterLevel          = MAX_DRINK;
 	_size                = START_GROWTH;
+
+	_foodQueue = std::deque<Foodstuff>();
+	_foodQueue.push_back(randomFood());
+	_foodQueue.push_back(randomFood());
+	_foodQueue.push_back(randomFood());
+	_foodQueue.push_back(randomFood());
+	_foodQueue.push_back(randomFood());
+
+	_drinkQueue = std::deque<Foodstuff>();
+	_drinkQueue.push_back(randomDrink());
+	_drinkQueue.push_back(randomDrink());
+	_drinkQueue.push_back(randomDrink());
+	_drinkQueue.push_back(randomDrink());
+	_drinkQueue.push_back(randomDrink());
 
 	_activeEffects = std::vector<Effect>();
 
@@ -315,6 +330,16 @@ void MainState::startGame() {
 	_activeEffects.push_back({DRINK,-20,inf,inf,nullptr});
 }
 
+//TODO: Make these functions not-so-random.
+Foodstuff MainState::randomFood ()
+{
+	return _foodList[rand()%_foodList.size()];
+}
+
+Foodstuff MainState::randomDrink ()
+{
+	return _drinkList[rand()%_drinkList.size()];
+}
 
 void MainState::updateTick() {
 	_inputs.sync();
@@ -360,19 +385,20 @@ void MainState::updateTick() {
 			_eatDelay = 0;
 		else if (_eatDelay < DOUBLE_TAP_TIME)
 		{
-			log().info("Double food tap.");
+			_foodQueue.pop_front();
+			_foodQueue.push_back(randomFood());
 			_eatDelay = -1;
 
 		}
 	}
 
-	if (_eatDelay > DOUBLE_TAP_TIME)
+	if (_eatDelay > DOUBLE_TAP_TIME && _foodLevel < MAX_FOOD)
 	{
-		log().info("Simple food tap.");
-
-		int i = rand()%_foodList.size();
-		for (Effect& e : _foodList[i].effects)
+		for (Effect& e : _foodQueue[0].effects)
 			_activeEffects.push_back(e);
+
+		_foodQueue.pop_front();
+		_foodQueue.push_back(randomFood());
 
 		_eatDelay = -1;
 	}
@@ -384,19 +410,19 @@ void MainState::updateTick() {
 			_drinkDelay = 0;
 		else if (_drinkDelay < DOUBLE_TAP_TIME)
 		{
-			log().info("Double drink tap.");
+			_drinkQueue.pop_front();
+			_drinkQueue.push_back(randomDrink());
 			_drinkDelay = -1;
-
 		}
 	}
 
-	if (_drinkDelay > DOUBLE_TAP_TIME)
+	if (_drinkDelay > DOUBLE_TAP_TIME && _waterLevel < MAX_DRINK)
 	{
-		log().info("Simple drink tap.");
-
-		int i = rand()%_drinkList.size();
-		for (Effect& e : _drinkList[i].effects)
+		for (Effect& e : _drinkQueue[0].effects)
 			_activeEffects.push_back(e);
+
+		_drinkQueue.pop_front();
+		_drinkQueue.push_back(randomDrink());
 
 		_drinkDelay = -1;
 	}
@@ -427,13 +453,13 @@ void MainState::updateFrame() {
 
 	Vector3 foodEntityPos(1./8. * w, 1./4. * h, .5);
 	Vector3 drinkEntityPos(7./8. * w, 1./4. * h, .5);
-	for(int i = 0; i < FOOD_QUEUE_SIZE; ++i) {
+	for (int i = 0; i < FOOD_QUEUE_SIZE; ++i) {
 		_foodEntities[i] .place(Transform(Translation(foodEntityPos)));
 		_drinkEntities[i].place(Transform(Translation(drinkEntityPos)));
 		foodEntityPos  += Vector3(0, 40, 0);
 		drinkEntityPos += Vector3(0, 40, 0);
-		_foodEntities[i] .sprite()->setIndex(i);
-		_drinkEntities[i].sprite()->setIndex(i+16);
+		_foodEntities [i].sprite()->setIndex((i < _foodQueue .size())?_foodQueue [i].tileIndex:31);
+		_drinkEntities[i].sprite()->setIndex((i < _drinkQueue.size())?_drinkQueue[i].tileIndex:31);
 	}
 
 	// Rendering
