@@ -55,6 +55,7 @@ class Font;
 
 
 #define FOOD_QUEUE_SIZE 10
+#define QUEUE_SCROLL_SPEED 3.
 
 #define MAX_FOOD 2000
 #define MAX_DRINK 2000
@@ -65,10 +66,9 @@ class Font;
 
 enum Meter { FOOD, DRINK, GROWTH };
 
-typedef struct Effect_s Effect;
-typedef struct Foodstuff_s Foodstuff;
+struct Foodstuff;
 
-struct Effect_s {
+struct Effect {
 	Meter type;            // Which meter is affected.
 	float changePerSecond; // Impact on meter (units/s).
 	float effectDuration;  // Remaining duration (s).
@@ -76,10 +76,16 @@ struct Effect_s {
 	Foodstuff* source;     // Source of the effect.
 };
 
-struct Foodstuff_s {
+struct Foodstuff {
 	Meter type;                  // Should be FOOD or DRINK.
 	int tileIndex;
 	std::vector<Effect> effects; // List of triggered effects.
+};
+
+struct MovingSprite {
+	EntityRef entity;
+	Vector3   target;
+	float     timeRemaining;
 };
 
 
@@ -104,6 +110,9 @@ public:
 	EntityRef createSprite(Sprite* sprite, const Vector3& pos,
 	                       const Vector2& scale,
 	                       const char* name = nullptr);
+	EntityRef createMovingSprite(Sprite* sprite, int tileIndex,
+	                             const Vector3& from, const Vector3& to,
+	                             float duration);
 	EntityRef createText(const std::string& msg, const Vector3& pos,
 	                     const Vector4& color = Vector4(1, 1, 1, 1));
 
@@ -153,6 +162,8 @@ public:
 	std::unique_ptr<Font>
 	            _font;
 
+	std::vector<MovingSprite> _movingSprites;
+
 	// Game related stuff
 
 	Input*      _drinkInput;
@@ -180,12 +191,15 @@ public:
 	// Game states
 
 	State       _state;
+	uint64      _lastFrameTime;
 
 	std::vector<Foodstuff> _foodList;
 	std::vector<Foodstuff> _drinkList;
 
 	std::deque<Foodstuff> _foodQueue;
 	std::deque<Foodstuff> _drinkQueue;
+	float       _foodQueueOffset;
+	float       _drinkQueueOffset;
 
 	float       _foodLevel;
 	float       _waterLevel;

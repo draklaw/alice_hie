@@ -212,6 +212,17 @@ EntityRef MainState::createSprite(Sprite* sprite, const Vector3& pos,
 }
 
 
+EntityRef MainState::createMovingSprite(Sprite* sprite, int tileIndex,
+										const Vector3& from, const Vector3& to,
+										float duration) {
+	EntityRef entity = createSprite(sprite, from);
+	entity.sprite()->setIndex(tileIndex);
+	entity.sprite()->setAnchor(Vector2(.5, .5));
+	_movingSprites.push_back(MovingSprite{entity, to, duration});
+	return entity;
+}
+
+
 EntityRef MainState::createText(const std::string& text, const Vector3& pos,
                                       const Vector4& color) {
 	EntityRef entity = _entities.createEntity(_entities.root(), "text");
@@ -297,6 +308,7 @@ void MainState::loadFoodSettings(const char* filename) {
 
 void MainState::startGame() {
 	_state               = Playing;
+	_lastFrameTime       = _loop.frameTime();
 
 	_drinkDelay = -1;
 	_eatDelay = -1;
@@ -321,6 +333,9 @@ void MainState::startGame() {
 	_drinkQueue.push_back(randomDrink());
 	_drinkQueue.push_back(randomDrink());
 	_drinkQueue.push_back(randomDrink());
+
+	_foodQueueOffset  = 0;
+	_drinkQueueOffset = 0;
 
 	_activeEffects = std::vector<Effect>();
 
@@ -354,6 +369,9 @@ void MainState::updateTick() {
 
 	float td = float(_loop.tickDuration()) / ONE_SEC;
 
+	int w = _game->window()->width();
+	int h = _game->window()->height();
+
 	for (Effect& e : _activeEffects)
 	{
 		float amount = e.changePerSecond * td;
@@ -374,10 +392,9 @@ void MainState::updateTick() {
 
 	//NOTE: StackOverflow comment :
 	// +20 "STL 'idioms' like this make me use Python for small projects."
-	std::vector<Effect> v = _activeEffects;
 	_activeEffects.erase(
 		std::remove_if(_activeEffects.begin(), _activeEffects.end(),
-			[] (Effect e)->bool { return e.effectDuration <= 0; }),
+			[] (const Effect& e)->bool { return e.effectDuration <= 0; }),
 		_activeEffects.end());
 
 	if (_eatInput->justPressed()) {
@@ -385,7 +402,11 @@ void MainState::updateTick() {
 			_eatDelay = 0;
 		else if (_eatDelay < DOUBLE_TAP_TIME)
 		{
+			Vector3 pp = _foodEntities[0].transform().translation();
+			createMovingSprite(&_foodsSprite, _foodQueue.front().tileIndex,
+								pp, Vector3(- 32, pp.y(), 0), .5);
 			_foodQueue.pop_front();
+			_foodQueueOffset += 1;
 			_foodQueue.push_back(randomFood());
 			_eatDelay = -1;
 
@@ -398,6 +419,7 @@ void MainState::updateTick() {
 			_activeEffects.push_back(e);
 
 		_foodQueue.pop_front();
+		_foodQueueOffset += 1;
 		_foodQueue.push_back(randomFood());
 
 		_eatDelay = -1;
@@ -411,6 +433,7 @@ void MainState::updateTick() {
 		else if (_drinkDelay < DOUBLE_TAP_TIME)
 		{
 			_drinkQueue.pop_front();
+			_drinkQueueOffset += 1;
 			_drinkQueue.push_back(randomDrink());
 			_drinkDelay = -1;
 		}
@@ -422,6 +445,7 @@ void MainState::updateTick() {
 			_activeEffects.push_back(e);
 
 		_drinkQueue.pop_front();
+		_drinkQueueOffset += 1;
 		_drinkQueue.push_back(randomDrink());
 
 		_drinkDelay = -1;
@@ -437,6 +461,8 @@ void MainState::updateTick() {
 
 
 void MainState::updateFrame() {
+	float fd = float(_loop.frameTime() - _lastFrameTime) / ONE_SEC;
+
 	int w = _game->window()->width();
 	int h = _game->window()->height();
 
@@ -451,16 +477,38 @@ void MainState::updateFrame() {
 	_foodBar .sprite()->setView(Box2(Vector2(0, 0), Vector2(1, _foodLevel / MAX_FOOD)));
 	_waterBar.sprite()->setView(Box2(Vector2(0, 0), Vector2(1, _waterLevel / MAX_DRINK)));
 
-	Vector3 foodEntityPos(1./8. * w, 1./4. * h, .5);
-	Vector3 drinkEntityPos(7./8. * w, 1./4. * h, .5);
+	float stackOffset = 40;
+	_foodQueueOffset  = std::max(_foodQueueOffset  - QUEUE_SCROLL_SPEED * fd, 0.);
+	_drinkQueueOffset = std::max(_drinkQueueOffset - QUEUE_SCROLL_SPEED * fd, 0.);
+	Vector3 foodEntityPos (1./8. * w, 1./4. * h + _foodQueueOffset  * stackOffset, .5);
+	Vector3 drinkEntityPos(7./8. * w, 1./4. * h + _drinkQueueOffset * stackOffset, .5);
 	for (int i = 0; i < FOOD_QUEUE_SIZE; ++i) {
 		_foodEntities[i] .place(Transform(Translation(foodEntityPos)));
 		_drinkEntities[i].place(Transform(Translation(drinkEntityPos)));
-		foodEntityPos  += Vector3(0, 40, 0);
-		drinkEntityPos += Vector3(0, 40, 0);
+		foodEntityPos  += Vector3(0, stackOffset, 0);
+		drinkEntityPos += Vector3(0, stackOffset, 0);
 		_foodEntities [i].sprite()->setIndex((i < _foodQueue .size())?_foodQueue [i].tileIndex:31);
 		_drinkEntities[i].sprite()->setIndex((i < _drinkQueue.size())?_drinkQueue[i].tileIndex:31);
 	}
+
+	for(MovingSprite& ms: _movingSprites) {
+		if(fd >= ms.timeRemaining) {
+			ms.timeRemaining = 0;
+			ms.entity.place(Transform(Translation(ms.target)));
+		} else {
+			Vector3 pos = ms.entity.transform().translation();
+			Vector3 diff = ms.target - pos;
+			ms.entity.place(Transform(Translation(pos + diff * (fd / ms.timeRemaining))));
+			ms.timeRemaining -= fd;
+		}
+	}
+
+	//NOTE: StackOverflow comment :
+	// +20 "STL 'idioms' like this make me use Python for small projects."
+	_movingSprites.erase(
+		std::remove_if(_movingSprites.begin(), _movingSprites.end(),
+			[] (const MovingSprite& ms)->bool { return ms.timeRemaining <= 0; }),
+		_movingSprites.end());
 
 	// Rendering
 
@@ -487,6 +535,8 @@ void MainState::updateFrame() {
 		_fpsTime  = now;
 		_fpsCount = 0;
 	}
+
+	_lastFrameTime = _loop.frameTime();
 
 	LAIR_LOG_OPENGL_ERRORS_TO(log());
 }
