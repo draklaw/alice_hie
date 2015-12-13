@@ -1,0 +1,177 @@
+[
+{ // Poulet
+	"type": "food",
+	"effects": [
+		{
+			"type":     "food",
+			"cps":      30,
+			"duration": 10
+		},
+		{
+			"type":     "growth",
+			"cps":      30,
+			"duration": 10
+		}
+	]
+},
+{ // Frites salées
+	"type": "food",
+	"effects": [
+		{
+			"type":     "food",
+			"cps":      20,
+			"duration": 10
+		},
+		{
+			"type":     "drink",
+			"cps":      -40,
+			"duration": 5
+		},
+		{
+			"type":     "growth",
+			"cps":      15,
+			"duration": 10
+		}
+	]
+},
+{ // Choucroute melba
+	"type": "food",
+	"effects": [
+		{
+			"type":     "food",
+			"cps":      40,
+			"duration": 20
+		},
+		{
+			"type":     "drink",
+			"cps":      10,
+			"duration": 20
+		},
+		{
+			"type":     "growth",
+			"cps":      30,
+			"duration": 15
+		}
+	]
+},
+{ // Pain sec
+	"type": "food",
+	"effects": [
+		{
+			"type":     "food",
+			"cps":      10,
+			"duration": 10
+		},
+		{
+			"type":     "growth",
+			"cps":      20,
+			"duration": 5
+		}
+	]
+},
+{ // Champignon bleu (croissance)
+	"type": "food",
+	"effects": [
+		{
+			"type":     "food",
+			"cps":      15,
+			"duration": 10
+		},
+		{
+			"type":     "growth",
+			"cps":      80,
+			"duration": 5
+		}
+	]
+},
+{ // Champignon rouge (rétrécissement)
+	"type": "food",
+	"effects": [
+		{
+			"type":     "food",
+			"cps":      -15,
+			"duration": 10
+		},
+		{
+			"type":     "growth",
+			"cps":      80,
+			"duration": 5
+		}
+	]
+},
+{ // Eau minérale
+	"type": "drink",
+	"effects": [
+		{
+			"type":     "drink",
+			"cps":      60,
+			"duration": 5
+		},
+		{
+			"type":     "growth",
+			"cps":      -20,
+			"duration": 10
+		}
+	]
+},
+{ // Eau de mer
+	"type": "drink",
+	"effects": [
+		{
+			"type":     "drink",
+			"cps":      60,
+			"duration": 3
+		},
+		{
+			"type":     "drink",
+			"cps":      -20,
+			"duration": 15
+		},
+		{
+			"type":     "growth",
+			"cps":      -20,
+			"duration": 10
+		}
+	]
+},
+{ // Soda
+	"type": "drink",
+	"effects": [
+		{
+			"type":     "drink",
+			"cps":      40,
+			"duration": 5
+		},
+		{
+			"type":     "food",
+			"cps":      10,
+			"duration": 5
+		},
+		{
+			"type":     "growth",
+			"cps":      -25,
+			"duration": 10
+		}
+	]
+},
+{ // Sirop d'érable
+	"type": "drink",
+	"effects": [
+		{
+			"type":     "drink",
+			"cps":      25,
+			"duration": 10
+		},
+		{
+			"type":     "food",
+			"cps":      25,
+			"duration": 10
+		},
+		{
+			"type":     "growth",
+			"cps":      -20,
+			"duration": 15
+		}
+	]
+}
+]
