@@ -219,20 +219,38 @@ EntityRef MainState::createText(const std::string& text, const Vector3& pos,
 void MainState::startGame() {
 	_state               = Playing;
 
+	_foodstuffs = std::vector<Foodstuff>();
+
 	_foodLevel           = 1;
 	_waterLevel          = 1;
 	_size                = 1;
-	_sizeGrowthRemaining = 0;
-	_sizeDecayRemaining  = 0;
+// 	_sizeGrowthRemaining = 0;
+// 	_sizeDecayRemaining  = 0;
 
-	_foodDecayPerSecond  = 0.05;
-	_foodPower           = 0.4;
-	_foodSizeGrowth      = 0.3;
-	_waterDecayPerSecond = 0.1;
-	_waterPower          = 0.4;
-	_waterSizeDecay      = 0.2;
-	_sizeGrowthPerSecond = 0.6;
-	_sizeDecayPerSecond  = 1.0;
+	_activeEffects = std::vector<Effect>();
+
+	//FIXME: Temporary chicken test (cluck-cluck).
+	Foodstuff chicken = {FOOD,std::vector<Effect>()};
+	chicken.effects.push_back({FOOD,-0.1,5,5,&chicken});
+	chicken.effects.push_back({GROWTH,0.1,10,10,&chicken});
+	
+	_foodstuffs.push_back(chicken);
+	
+	for (Effect e : chicken.effects)
+		_activeEffects.push_back(e);
+	
+	// Natural hunger and thirst.
+	_activeEffects.push_back({FOOD,-0.001,INFINITY,INFINITY,nullptr});
+	_activeEffects.push_back({DRINK,-0.01,INFINITY,INFINITY,nullptr});
+
+// 	_foodDecayPerSecond  = 0.05;
+// 	_foodPower           = 0.4;
+// 	_foodSizeGrowth      = 0.3;
+// 	_waterDecayPerSecond = 0.1;
+// 	_waterPower          = 0.4;
+// 	_waterSizeDecay      = 0.2;
+// 	_sizeGrowthPerSecond = 0.6;
+// 	_sizeDecayPerSecond  = 1.0;
 }
 
 
@@ -249,25 +267,51 @@ void MainState::updateTick() {
 
 	float td = float(_loop.tickDuration()) / ONE_SEC;
 
-	_foodLevel  -= _foodDecayPerSecond  * td;
-	_waterLevel -= _waterDecayPerSecond * td;
-
-	if(_eatInput->justPressed()) {
-		_foodLevel            = std::min(_foodLevel  + _foodPower,  1.f);
-		_sizeGrowthRemaining += _foodSizeGrowth;
+	for (Effect& e : _activeEffects)
+	{
+		float amount = e.changePerSecond * td;
+		switch (e.type)
+		{
+			case FOOD:
+				_foodLevel += amount;
+				break;
+			case DRINK:
+				_waterLevel += amount;
+				break;
+			case GROWTH:
+				_size += amount;
+				break;
+		}
+		e.effectDuration -= td;
 	}
-	if(_drinkInput->justPressed()) {
-		_waterLevel           = std::min(_waterLevel + _waterPower, 1.f);
-		_sizeDecayRemaining  += _waterSizeDecay;
-	}
-
-	float growth = std::min(_sizeGrowthRemaining, _sizeGrowthPerSecond * td);
-	float decay  = std::min(_sizeDecayRemaining,  _sizeDecayPerSecond  * td);
-
-	_size += growth - decay;
-
-	_sizeGrowthRemaining -= growth;
-	_sizeDecayRemaining  -= decay;
+	
+	//NOTE: StackOverflow comment :
+	// +20 "STL 'idioms' like this make me use Python for small projects."
+	std::vector<Effect> v = _activeEffects;
+	_activeEffects.erase(
+		std::remove_if(_activeEffects.begin(), _activeEffects.end(),
+			[] (Effect e)->bool { return e.effectDuration <= 0; }),
+		_activeEffects.end());
+	
+// 	_foodLevel  -= _foodDecayPerSecond  * td;
+// 	_waterLevel -= _waterDecayPerSecond * td;
+// 
+// 	if(_eatInput->justPressed()) {
+// 		_foodLevel            = std::min(_foodLevel  + _foodPower,  1.f);
+// 		_sizeGrowthRemaining += _foodSizeGrowth;
+// 	}
+// 	if(_drinkInput->justPressed()) {
+// 		_waterLevel           = std::min(_waterLevel + _waterPower, 1.f);
+// 		_sizeDecayRemaining  += _waterSizeDecay;
+// 	}
+// 
+// 	float growth = std::min(_sizeGrowthRemaining, _sizeGrowthPerSecond * td);
+// 	float decay  = std::min(_sizeDecayRemaining,  _sizeDecayPerSecond  * td);
+// 
+// 	_size += growth - decay;
+// 
+// 	_sizeGrowthRemaining -= growth;
+// 	_sizeDecayRemaining  -= decay;
 
 	if(_size <= 0 || _size > 3 || _foodLevel <= 0 || _waterLevel <= 0)
 		_state = Dead;

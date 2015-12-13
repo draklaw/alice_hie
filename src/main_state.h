@@ -54,11 +54,22 @@ class Game;
 class Font;
 
 
-enum RealStatus {
-	STATUS_MUTE,
-	STATUS_SLOW,
-	STATUS_DISABLE,
-	NB_REAL_STATUS
+enum Meter { FOOD, DRINK, GROWTH };
+
+typedef struct Effect_s Effect;
+typedef struct Foodstuff_s Foodstuff;
+
+struct Effect_s {
+	Meter type;            // Which meter is affected.
+	float changePerSecond; // Impact on meter (units/s).
+	float effectDuration;  // Remaining duration (s).
+	float totalDuration;   // Total duration (s).
+	Foodstuff* source;      // Source of the effect.
+};
+
+struct Foodstuff_s {
+	Meter type;                  // Should be FOOD or DRINK.
+	std::vector<Effect> effects; // List of triggered effects.
 };
 
 
@@ -149,20 +160,24 @@ public:
 
 	State       _state;
 
+	std::vector<Foodstuff> _foodstuffs;
+
 	float       _foodLevel;
 	float       _waterLevel;
 	float       _size;
-	float       _sizeGrowthRemaining;
-	float       _sizeDecayRemaining;
+// 	float       _sizeGrowthRemaining;
+// 	float       _sizeDecayRemaining;
 
-	float       _foodDecayPerSecond;
-	float       _foodPower;
-	float       _foodSizeGrowth;
-	float       _waterDecayPerSecond;
-	float       _waterPower;
-	float       _waterSizeDecay;
-	float       _sizeGrowthPerSecond;
-	float       _sizeDecayPerSecond;
+	std::vector<Effect> _activeEffects;
+
+// 	float       _foodDecayPerSecond;
+// 	float       _foodPower;
+// 	float       _foodSizeGrowth;
+// 	float       _waterDecayPerSecond;
+// 	float       _waterPower;
+// 	float       _waterSizeDecay;
+// 	float       _sizeGrowthPerSecond;
+// 	float       _sizeDecayPerSecond;
 };
 
 
