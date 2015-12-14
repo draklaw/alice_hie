@@ -102,13 +102,21 @@ void MainState::initialize() {
 	_font.reset(new Font(_fontJson, _fontTex));
 	_font->baselineToTop = 12;
 
+	_font2Json = _game->sys()->loader().getJson("please.json");
+	_font2Tex  = _game->renderer()->getTexture(_font2Json["file"].asString(),
+	        Texture::NEAREST | Texture::REPEAT);
+	_font2.reset(new Font(_font2Json, _font2Tex));
+	_font2->baselineToTop = 56;
+
 	_bgSprite          = loadSprite("bg.png");
 	_characterSprite   = loadSprite("alice.png", 3, 1);
 	_barsSprite        = loadSprite("bars.png", 3, 2);
 	_foodsSprite       = loadSprite("foods.png", 8, 4);
 	_dnSprite          = loadSprite("dn.png");
 	_frameSprite       = loadSprite("frame.png", 3, 3, Texture::NEAREST | Texture::CLAMP);
+	_deadSprite        = loadSprite("alice_dead.png");
 	_splashSprite      = loadSprite("splash.png");
+	_vanishSprite      = loadSprite("vanish.png");
 
 	_music             = _game->audio()->loadMusic(_game->dataPath() / "alice_hie.ogg");
 
@@ -127,7 +135,7 @@ void MainState::initialize() {
 	_bg                = createSprite(&_bgSprite, "bg");
 	_bg.sprite()->setAnchor(Vector2(.5, .5));
 
-	_journal           = createText("",Vector3(0,0,0));
+	_journal           = createText(_font.get(), "",Vector3(0,0,0));
 	_texts.get(_journal)->color = Vector4(132/255., 87/255., 57/255., 1.);
 	_character         = createSprite(&_characterSprite, Vector3(0, 0, 0), "character");
 	_character.sprite()->setAnchor(Vector2(.5, .03));
@@ -156,8 +164,19 @@ void MainState::initialize() {
 	_dn                = createSprite(&_dnSprite);
 	_dn        .sprite()->setAnchor(Vector2(.5, .5));
 
+	_dead              = createSprite(&_deadSprite,   "dead");
+	_dead      .sprite()->setAnchor(Vector2(.5, 0));
+
 	_splash            = createSprite(&_splashSprite, "splash");
 	_splash    .sprite()->setAnchor(Vector2(.5, .5));
+
+	_vanish            = createSprite(&_vanishSprite, "vanish");
+	_vanish    .sprite()->setAnchor(Vector2(.5, 0));
+
+	_dayCounter        = createText(_font2.get(), "", Vector3(0,0,0),
+	                                Vector4(56/255., 32/255., 16/255., 1));
+	_deathMsg          = createText(_font2.get(), "", Vector3(0,0,0),
+	                                Vector4(82/255., 11/255., 3/255., 1));
 
 	_frame.background  = &_frameSprite;
 
@@ -264,12 +283,12 @@ EntityRef MainState::createMovingSprite(Sprite* sprite, int tileIndex,
 }
 
 
-EntityRef MainState::createText(const std::string& text, const Vector3& pos,
-                                      const Vector4& color) {
+EntityRef MainState::createText(Font* font, const std::string& text,
+                                const Vector3& pos, const Vector4& color) {
 	EntityRef entity = _entities.createEntity(_entities.root(), "text");
 	_texts.addComponent(entity);
 	TextComponent* comp = _texts.get(entity);
-	comp->font = _font.get();
+	comp->font = font;
 	comp->text = text;
 	comp->color = color;
 	entity.place(Transform(Translation(pos)));
@@ -382,9 +401,14 @@ void MainState::startGame() {
 	_size                = START_GROWTH;
 
 	loadFoodSettings("food.json");
+	_foodOfTheDay.clear();
+	_drinkOfTheDay.clear();
 	fetchDailyCrate();
 
 	srand(time(nullptr));
+	_foodQueue.clear();
+	_drinkQueue.clear();
+
 	for (unsigned i = 0 ; i < QUEUE_SIZE ; i++)
 	{
 		_foodQueue.push_back(randomFood());
@@ -394,12 +418,14 @@ void MainState::startGame() {
 	_foodQueueOffset  = 0;
 	_drinkQueueOffset = 0;
 
-	_activeEffects = std::vector<Effect>();
-
 	// Natural hunger and thirst.
 	float inf = std::numeric_limits<float>::infinity();
+	_activeEffects.clear();
 	_activeEffects.push_back({FOOD,-30,inf,inf,nullptr});
 	_activeEffects.push_back({DRINK,-50,inf,inf,nullptr});
+
+	_texts.get(_dayCounter)->text = "";
+	_texts.get(_deathMsg)  ->text = "";
 }
 
 //NOTE: Should probably be a lambda or something but frankly IDC.
@@ -498,6 +524,7 @@ void MainState::updateTick() {
 			_msg = 0;
 			_timeOfDay = 0;
 			_playOnce ^= true;
+			_texts.get(_dayCounter)->text = "Day " + std::to_string(_day);
 			_game->audio()->playSound(_morningSound, 0);
 		}
 
@@ -610,18 +637,24 @@ void MainState::updateTick() {
 	{
 		_game->audio()->playSound(_vanishSound, 0);
 		_state = Vanished;
+		_texts.get(_deathMsg)->text = "You shrunk into\nnothingness...";
 	}
 
 	if (_size > MAX_GROWTH)
 	{
 		_game->audio()->playSound(_blowupSound, 0);
 		_state = Blown;
+		_texts.get(_deathMsg)->text = "You got crushed...";
 	}
 
 	if (_foodLevel <= 0 || _waterLevel <= 0)
 	{
 		_game->audio()->playSound(_starveSound, 0);
 		_state = Starved;
+		if(_foodLevel <= 0)
+			_texts.get(_deathMsg)->text = "You died of\nhunger...";
+		else
+			_texts.get(_deathMsg)->text = "You died of\nthirst...";
 	}
 
 // 	log().info("food: ", _foodLevel, ", water: ", _waterLevel, ", size: ", _size);
@@ -700,7 +733,13 @@ void MainState::updateFrame() {
 	_dn.place(Translation(Vector3(w*.5, h, .2))
 		* AngleAxis(-time * M_PI * 2., Vector3::UnitZ()));
 
-	_splash.place(Translation(w*.5, h*.5, (_state == Blown)? 1: -2) * bgScaling);
+	_dead  .place(Translation(w*.5, h*.1, (_state == Starved)?  .9: -2)
+	            * Eigen::Scaling(charScale, charScale, 1.f));
+	_splash.place(Translation(w*.5, h*.5, (_state == Blown)?    .9: -2) * bgScaling);
+	_vanish.place(Translation(w*.5, h*.1, (_state == Vanished)? .9: -2) * bgScaling);
+
+	_dayCounter.place(Translation(w*.5 - h*.42, h * .92, .7) * bgScaling);
+	_deathMsg  .place(Translation(w*.4, h*.6, 1) * bgScaling);
 
 	float margin    = 32;
 	_frame.position = Vector3(w * .1 - margin,   h * .7 + margin, .9);
