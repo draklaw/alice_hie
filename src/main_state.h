@@ -209,7 +209,7 @@ public:
 	Sprite      _vanishedMsgSprite;
 	Sprite      _blewupMsgSprite;
 	Sprite      _starvedMsgSprite;
-// 	Sprite      _thirstedMsgSprite;
+	Sprite      _helpSprite;
 
 	const Sound* _morningSound;
 	const Sound* _eveningSound;
@@ -238,11 +238,12 @@ public:
 	EntityRef   _splash;
 	EntityRef   _vanish;
 	EntityRef   _dayCounter;
-// 	EntityRef   _deathMsg;
 	EntityRef   _vanishedMsg;
 	EntityRef   _blewupMsg;
 	EntityRef   _starvedMsg;
-// 	EntityRef   _thirstedMsg;
+	EntityRef   _deathMsg;
+	EntityRef   _helpFood;
+	EntityRef   _helpDrink;
 
 	Frame       _frame;
 

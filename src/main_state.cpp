@@ -120,7 +120,7 @@ void MainState::initialize() {
 	_vanishedMsgSprite = loadSprite("msg_vanished.png");
 	_blewupMsgSprite   = loadSprite("msg_crushed.png");
 	_starvedMsgSprite  = loadSprite("msg_starved.png");
-// 	_thirstMsgSprite   = loadSprite("msg_thirst.png");
+	_helpSprite        = loadSprite("help.png", 2, 1);
 
 	_music             = _game->audio()->loadMusic(_game->dataPath() / "alice_hie.ogg");
 
@@ -188,6 +188,11 @@ void MainState::initialize() {
 	                                Vector4(56/255., 32/255., 16/255., 1));
 // 	_deathMsg          = createText(_font2.get(), "", Vector3(0,0,0),
 // 	                                Vector4(82/255., 11/255., 3/255., 1));
+
+	_helpFood          = createSprite(&_helpSprite, "", 1);
+	_helpFood  .sprite()->setAnchor(Vector2(1, 0));
+	_helpDrink         = createSprite(&_helpSprite, "", 0);
+	_helpDrink .sprite()->setAnchor(Vector2(0, 0));
 
 	_frame.background  = &_frameSprite;
 
@@ -684,7 +689,7 @@ void MainState::updateFrame() {
 	_bg.place(Translation(Vector3(w/2., h/2., -1)) * bgScaling);
 
 	float charScale = bgScale * _size / MAX_GROWTH; //h / 5000. * _size / START_GROWTH;
-	_character.place(Translation(Vector3(w/2, h*0.106, 0))
+	_character.place(Translation(Vector3(w/2, h*0.106, (_state == Playing)? 0: -2))
 	               * Eigen::Scaling(charScale, charScale, 1.f));
 	if (_size < TINY_GROWTH)
 		_character.sprite()->setIndex(2);
@@ -759,6 +764,9 @@ void MainState::updateFrame() {
 	_starvedMsg .place(Transform(Translation(Vector3(w/2, h/2,(_state==Starved)?1:-2))
 	                   * msgScaling * bgScaling));
 
+
+	_helpFood  .place(Translation(w*.5 - h*.6, h*.47, .6) * bgScaling);
+	_helpDrink .place(Translation(w*.5 + h*.6, h*.47, .6) * bgScaling);
 
 	float margin    = 32;
 	_frame.position = Vector3(w * .1 - margin,   h * .7 + margin, .9);
