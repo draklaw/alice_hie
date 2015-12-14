@@ -213,6 +213,7 @@ public:
 	const Sound* _blowupSound;
 	const Sound* _vanishSound;
 	const Sound* _starveSound;
+	const Music* _music;
 	bool        _playOnce;
 
 	EntityRef   _bg;

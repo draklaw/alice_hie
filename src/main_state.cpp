@@ -110,7 +110,7 @@ void MainState::initialize() {
 	_frameSprite       = loadSprite("frame.png", 3, 3, Texture::NEAREST | Texture::CLAMP);
 	_splashSprite      = loadSprite("splash.png");
 
-//	_music1      = _game->audio()->loadMusic(_game->dataPath() / "music1.ogg");
+	_music             = _game->audio()->loadMusic(_game->dataPath() / "alice_hie.ogg");
 
 	_morningSound      = _game->audio()->loadSound(_game->dataPath() / "morning.ogg");
 	_eveningSound      = _game->audio()->loadSound(_game->dataPath() / "evening.ogg");
@@ -368,6 +368,7 @@ void MainState::startGame() {
 	_lastFrameTime       = _loop.frameTime();
 
 	_playOnce = false;
+	_game->audio()->playMusic(_music);
 
 	_timeOfDay = DAY_LENGTH+.01;
 	_day = _msg = 0;
