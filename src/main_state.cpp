@@ -66,9 +66,10 @@ MainState::~MainState() {
 }
 
 
-Sprite MainState::loadSprite(const char* file, unsigned th, unsigned tv) {
+Sprite MainState::loadSprite(const char* file, unsigned th, unsigned tv,
+                             unsigned flags) {
 	Texture* tex = _game->renderer()->getTexture(
-				file, Texture::BILINEAR | Texture::CLAMP);
+				file, flags);
 	return Sprite(tex, th, tv);
 }
 
@@ -106,6 +107,8 @@ void MainState::initialize() {
 	_barsSprite        = loadSprite("bars.png", 3, 2);
 	_foodsSprite       = loadSprite("foods.png", 8, 4);
 	_dnSprite          = loadSprite("dn.png");
+	_frameSprite       = loadSprite("frame.png", 3, 3, Texture::NEAREST | Texture::CLAMP);
+	_splashSprite      = loadSprite("splash.png");
 
 //	_music1      = _game->audio()->loadMusic(_game->dataPath() / "music1.ogg");
 
@@ -125,6 +128,7 @@ void MainState::initialize() {
 	_bg.sprite()->setAnchor(Vector2(.5, .5));
 
 	_journal           = createText("",Vector3(0,0,0));
+	_texts.get(_journal)->color = Vector4(132/255., 87/255., 57/255., 1.);
 	_character         = createSprite(&_characterSprite, Vector3(0, 0, 0), "character");
 	_character.sprite()->setAnchor(Vector2(.5, .03));
 
@@ -150,7 +154,12 @@ void MainState::initialize() {
 	}
 
 	_dn                = createSprite(&_dnSprite);
-	_dn.sprite()->setAnchor(Vector2(.5, .5));
+	_dn        .sprite()->setAnchor(Vector2(.5, .5));
+
+	_splash            = createSprite(&_splashSprite, "splash");
+	_splash    .sprite()->setAnchor(Vector2(.5, .5));
+
+	_frame.background  = &_frameSprite;
 
 	_initialized = true;
 }
@@ -689,6 +698,12 @@ void MainState::updateFrame() {
 	_dn.place(Translation(Vector3(w*.5, h, .2))
 		* AngleAxis(-time * M_PI * 2., Vector3::UnitZ()));
 
+	_splash.place(Translation(w*.5, h*.5, (_state == Dead)? 1: -2) * bgScaling);
+
+	float margin    = 32;
+	_frame.position = Vector3(w * .1 - margin,   h * .7 + margin, .9);
+	_frame.size     = Vector2(w * .8 + 2*margin, h * .2);
+
 	// Rendering
 
 	glClearColor(133./255., 88./255., 58./255., 1.);
@@ -700,6 +715,10 @@ void MainState::updateFrame() {
 	_sprites.render(_loop.frameInterp(), _camera);
 	_texts.render(  _loop.frameInterp(), _game->renderer());
 	_anims.update(_loop.tickDuration());
+
+	if(!_texts.get(_journal)->text.empty()) {
+		_frame.render(_game->renderer());
+	}
 
 	_game->renderer()->spriteShader()->use();
 	_game->renderer()->spriteShader()->setTextureUnit(0);

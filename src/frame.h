@@ -37,7 +37,7 @@ class Renderer;
 
 class Frame {
 public:
-	Frame(Sprite* bg, const Vector2& size);
+	Frame(Sprite* bg=nullptr, const Vector2& size=Vector2(0, 0));
 
 	void render(Renderer* renderer);
 

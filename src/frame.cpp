@@ -27,7 +27,7 @@ Frame::Frame(Sprite* bg, const Vector2& size)
     : position(Vector3::Zero()),
       size(size),
       background(bg) {
-	lairAssert(bg);
+//	lairAssert(bg);
 }
 
 

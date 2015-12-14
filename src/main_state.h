@@ -103,7 +103,8 @@ public:
 	MainState(Game* game);
 	~MainState();
 
-	Sprite loadSprite(const char* file, unsigned th = 1, unsigned tv = 1);
+	Sprite loadSprite(const char* file, unsigned th = 1, unsigned tv = 1,
+	                  unsigned flags = Texture::BILINEAR | Texture::CLAMP);
 
 	virtual void initialize();
 	virtual void shutdown();
@@ -123,7 +124,7 @@ public:
 	EntityRef createMovingSprite(Sprite* sprite, int tileIndex,
 	                             const Vector3& from, const Vector3& to,
 	                             float duration,
-								 const Vector2& anchor = Vector2(.5, .5));
+	                             const Vector2& anchor = Vector2(.5, .5));
 	EntityRef createText(const std::string& msg, const Vector3& pos,
 	                     const Vector4& color = Vector4(1, 1, 1, 1));
 
@@ -196,6 +197,8 @@ public:
 	Sprite      _barsSprite;
 	Sprite      _foodsSprite;
 	Sprite      _dnSprite;
+	Sprite      _frameSprite;
+	Sprite      _splashSprite;
 
 	const Sound* _morningSound;
 	const Sound* _eveningSound;
@@ -219,6 +222,9 @@ public:
 	std::vector<EntityRef> _foodEntities;
 	std::vector<EntityRef> _drinkEntities;
 	EntityRef   _dn;
+	EntityRef   _splash;
+
+	Frame       _frame;
 
 	// Game states
 
