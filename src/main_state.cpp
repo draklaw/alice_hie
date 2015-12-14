@@ -637,7 +637,7 @@ void MainState::updateFrame() {
 		if(ms.timeRemaining > 0) {
 			Vector3 pos = ms.entity.transform().translation();
 			Vector3 diff = ms.target - pos;
-			ms.entity.place(Transform(Translation(pos + diff * (fd / ms.timeRemaining))));
+			ms.entity.place(Translation(pos + diff * (fd / ms.timeRemaining)) * bgScaling);
 			ms.timeRemaining -= fd;
 		} else {
 			ms.entity.place(Transform(Translation(Vector3(-1000, -1000, -1000))));
