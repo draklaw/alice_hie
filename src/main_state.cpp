@@ -117,6 +117,10 @@ void MainState::initialize() {
 	_deadSprite        = loadSprite("alice_dead.png");
 	_splashSprite      = loadSprite("splash.png");
 	_vanishSprite      = loadSprite("vanish.png");
+	_vanishedMsgSprite = loadSprite("msg_vanished.png");
+	_blewupMsgSprite   = loadSprite("msg_crushed.png");
+	_starvedMsgSprite  = loadSprite("msg_starved.png");
+// 	_thirstMsgSprite   = loadSprite("msg_thirst.png");
 
 	_music             = _game->audio()->loadMusic(_game->dataPath() / "alice_hie.ogg");
 
@@ -125,8 +129,8 @@ void MainState::initialize() {
 	_eatSound          = _game->audio()->loadSound(_game->dataPath() / "omnomnom.ogg");
 	_drinkSound        = _game->audio()->loadSound(_game->dataPath() / "glouglou.ogg");
 	_discardSound      = _game->audio()->loadSound(_game->dataPath() / "discard.ogg");
-	_blowupSound       = _game->audio()->loadSound(_game->dataPath() / "death.ogg");
 	_vanishSound       = _game->audio()->loadSound(_game->dataPath() / "death.ogg");
+	_blowupSound       = _game->audio()->loadSound(_game->dataPath() / "death.ogg");
 	_starveSound       = _game->audio()->loadSound(_game->dataPath() / "death.ogg");
 
 //	_damageAnim.reset(new MoveAnim(ONE_SEC/2, Vector3(0, 30, 0), RELATIVE));
@@ -153,6 +157,13 @@ void MainState::initialize() {
 	_foodBarFg .sprite()->setAnchor(Vector2(1, .5));
 	_waterBarFg.sprite()->setAnchor(Vector2(0, .5));
 
+	_vanishedMsg = createSprite(&_vanishedMsgSprite, "vanished_msg");
+	_blewupMsg   = createSprite(&_blewupMsgSprite,   "blowup_msg");
+	_starvedMsg  = createSprite(&_starvedMsgSprite,  "starve_msg");
+	_vanishedMsg.sprite()->setAnchor(Vector2(.5, .5));
+	_blewupMsg  .sprite()->setAnchor(Vector2(.5, .5));
+	_starvedMsg .sprite()->setAnchor(Vector2(.5, .5));
+
 	for(int i = 0; i < FOOD_QUEUE_SIZE; ++i) {
 		_foodEntities .push_back(createSprite(&_foodsSprite));
 		_drinkEntities.push_back(createSprite(&_foodsSprite));
@@ -175,8 +186,8 @@ void MainState::initialize() {
 
 	_dayCounter        = createText(_font2.get(), "", Vector3(0,0,0),
 	                                Vector4(56/255., 32/255., 16/255., 1));
-	_deathMsg          = createText(_font2.get(), "", Vector3(0,0,0),
-	                                Vector4(82/255., 11/255., 3/255., 1));
+// 	_deathMsg          = createText(_font2.get(), "", Vector3(0,0,0),
+// 	                                Vector4(82/255., 11/255., 3/255., 1));
 
 	_frame.background  = &_frameSprite;
 
@@ -425,7 +436,7 @@ void MainState::startGame() {
 	_activeEffects.push_back({DRINK,-50,inf,inf,nullptr});
 
 	_texts.get(_dayCounter)->text = "";
-	_texts.get(_deathMsg)  ->text = "";
+// 	_texts.get(_deathMsg)  ->text = "";
 }
 
 //NOTE: Should probably be a lambda or something but frankly IDC.
@@ -637,24 +648,24 @@ void MainState::updateTick() {
 	{
 		_game->audio()->playSound(_vanishSound, 0);
 		_state = Vanished;
-		_texts.get(_deathMsg)->text = "You shrunk into\nnothingness...";
+// 		_texts.get(_deathMsg)->text = "You shrunk into\nnothingness...";
 	}
 
 	if (_size > MAX_GROWTH)
 	{
 		_game->audio()->playSound(_blowupSound, 0);
 		_state = Blown;
-		_texts.get(_deathMsg)->text = "You got crushed...";
+// 		_texts.get(_deathMsg)->text = "You got crushed...";
 	}
 
 	if (_foodLevel <= 0 || _waterLevel <= 0)
 	{
 		_game->audio()->playSound(_starveSound, 0);
 		_state = Starved;
-		if(_foodLevel <= 0)
-			_texts.get(_deathMsg)->text = "You died of\nhunger...";
-		else
-			_texts.get(_deathMsg)->text = "You died of\nthirst...";
+// 		if(_foodLevel <= 0)
+// 			_texts.get(_deathMsg)->text = "You died of\nhunger...";
+// 		else
+// 			_texts.get(_deathMsg)->text = "You died of\nthirst...";
 	}
 
 // 	log().info("food: ", _foodLevel, ", water: ", _waterLevel, ", size: ", _size);
@@ -681,7 +692,6 @@ void MainState::updateFrame() {
 		_character.sprite()->setIndex(1);
 	else
 		_character.sprite()->setIndex(0);
-
 
 	_journal.place(Transform(Translation(Vector3(w/10, 9./10. * h, 1))));
 
@@ -739,7 +749,16 @@ void MainState::updateFrame() {
 	_vanish.place(Translation(w*.5, h*.1, (_state == Vanished)? .9: -2) * bgScaling);
 
 	_dayCounter.place(Translation(w*.5 - h*.42, h * .92, .7) * bgScaling);
-	_deathMsg  .place(Translation(w*.4, h*.6, 1) * bgScaling);
+// 	_deathMsg  .place(Translation(w*.4, h*.6, 1) * bgScaling);
+
+	auto msgScaling = Eigen::Scaling(2.f/5.f, 2.f/5.f, 1.f);
+	_vanishedMsg.place(Transform(Translation(Vector3(w/2, h/2,(_state==Vanished)?1:-2))
+	                   * msgScaling * bgScaling));
+	_blewupMsg  .place(Transform(Translation(Vector3(w/2, h/2,(_state==Blown)?1:-2))
+	                   * msgScaling * bgScaling));
+	_starvedMsg .place(Transform(Translation(Vector3(w/2, h/2,(_state==Starved)?1:-2))
+	                   * msgScaling * bgScaling));
+
 
 	float margin    = 32;
 	_frame.position = Vector3(w * .1 - margin,   h * .7 + margin, .9);
