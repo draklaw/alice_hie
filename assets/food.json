@@ -11,8 +11,8 @@
 		},
 		{
 			"type":     "growth",
-			"cps":      30,
-			"duration": 15
+			"cps":      15,
+			"duration": 20
 		}
 	]
 },
@@ -114,11 +114,11 @@
 		{
 			"type":     "drink",
 			"cps":      80,
-			"duration": 5
+			"duration": 4
 		},
 		{
 			"type":     "growth",
-			"cps":      -20,
+			"cps":      -25,
 			"duration": 10
 		}
 	]
