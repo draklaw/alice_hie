@@ -513,7 +513,13 @@ void MainState::updateFrame() {
 	float charScale = bgScale * _size / MAX_GROWTH; //h / 5000. * _size / START_GROWTH;
 	_character.place(Translation(Vector3(w/2, h*0.106, 0))
 	               * Eigen::Scaling(charScale, charScale, 1.f));
-	//_character.sprite()->setIndex(1);
+	if (_size < TINY_GROWTH)
+		_character.sprite()->setIndex(2);
+	else if (_size > HUGE_GROWTH)
+		_character.sprite()->setIndex(1);
+	else
+		_character.sprite()->setIndex(0);
+		
 
 	_journal.place(Transform(Translation(Vector3(w/10, 9./10. * h, 1))));
 

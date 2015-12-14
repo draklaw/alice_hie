@@ -58,12 +58,14 @@ class Font;
 #define QUEUE_SCROLL_SPEED 3.
 #define STACK_OFFSET 70
 
+#define TINY_GROWTH 300
+#define START_GROWTH 1000
+#define HUGE_GROWTH 1700
+#define MAX_GROWTH 2000
 #define MAX_FOOD 2000
 #define MAX_DRINK 2000
-#define START_GROWTH 1000
-#define MAX_GROWTH 2000
 
-#define DAY_LENGTH 3
+#define DAY_LENGTH 30
 
 #define DOUBLE_TAP_TIME 0.3
 
