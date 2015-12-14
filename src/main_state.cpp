@@ -535,7 +535,7 @@ void MainState::updateTick() {
 			Vector3 pp = _foodEntities[0].transform().translation();
 			createMovingSprite(&_foodsSprite, _foodQueue.front().tileIndex,
 			                   pp, Vector3(- 32, pp.y(), 0), .5);
-			
+
 			_game->audio()->playSound(_discardSound, 0);
 			_foodQueue.pop_front();
 			_foodQueueOffset += 1;
@@ -574,7 +574,7 @@ void MainState::updateTick() {
 			int w = _game->window()->width();
 			createMovingSprite(&_foodsSprite, _drinkQueue.front().tileIndex,
 			                   pp, Vector3(w + 32, pp.y(), 0), .5);
-			
+
 			_game->audio()->playSound(_discardSound, 0);
 			_drinkQueue.pop_front();
 			_drinkQueueOffset += 1;
@@ -698,7 +698,7 @@ void MainState::updateFrame() {
 	_dn.place(Translation(Vector3(w*.5, h, .2))
 		* AngleAxis(-time * M_PI * 2., Vector3::UnitZ()));
 
-	_splash.place(Translation(w*.5, h*.5, (_state == Dead)? 1: -2) * bgScaling);
+	_splash.place(Translation(w*.5, h*.5, (_state == Blown)? 1: -2) * bgScaling);
 
 	float margin    = 32;
 	_frame.position = Vector3(w * .1 - margin,   h * .7 + margin, .9);

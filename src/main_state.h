@@ -182,6 +182,11 @@ public:
 	std::unique_ptr<Font>
 	            _font;
 
+	Texture*    _font2Tex;
+	Json::Value _font2Json;
+	std::unique_ptr<Font>
+	            _font2;
+
 	std::vector<MovingSprite> _movingSprites;
 
 	// Game related stuff
