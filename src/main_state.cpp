@@ -336,26 +336,20 @@ void MainState::startGame() {
 	_drinkDelay = -1;
 	_eatDelay = -1;
 
-	srand(time(nullptr));
-	loadFoodSettings("food.json");
 
 	_foodLevel           = MAX_FOOD;
 	_waterLevel          = MAX_DRINK;
 	_size                = START_GROWTH;
 
-	_foodQueue = std::deque<Foodstuff>();
-	_foodQueue.push_back(randomFood());
-	_foodQueue.push_back(randomFood());
-	_foodQueue.push_back(randomFood());
-	_foodQueue.push_back(randomFood());
-	_foodQueue.push_back(randomFood());
-
-	_drinkQueue = std::deque<Foodstuff>();
-	_drinkQueue.push_back(randomDrink());
-	_drinkQueue.push_back(randomDrink());
-	_drinkQueue.push_back(randomDrink());
-	_drinkQueue.push_back(randomDrink());
-	_drinkQueue.push_back(randomDrink());
+	loadFoodSettings("food.json");
+	fetchDailyCrate();
+	
+	srand(time(nullptr));
+	for (unsigned i = 0 ; i < QUEUE_SIZE ; i++)
+	{
+		_foodQueue.push_back(randomFood());
+		_drinkQueue.push_back(randomDrink());
+	}
 
 	_foodQueueOffset  = 0;
 	_drinkQueueOffset = 0;
@@ -368,15 +362,61 @@ void MainState::startGame() {
 	_activeEffects.push_back({DRINK,-100,inf,inf,nullptr});
 }
 
-//TODO: Make these functions not-so-random.
+//NOTE: Should probably be a lambda or something but frankly IDC.
+Foodstuff MainState::getFoodByName (const std::string& name)
+{
+	for (Foodstuff& f : _foodList)
+		if (f.name == name)
+			return f;
+		
+	for (Foodstuff& f : _drinkList)
+		if (f.name == name)
+			return f;
+	
+	throw std::runtime_error("No such foodstuff.");
+}
+
+void MainState::fetchDailyCrate ()
+{
+	//NOTE: Adding the same food several times would change proportions.
+	switch (_day)
+	{
+		case 0:
+			_foodOfTheDay.push_back(getFoodByName("chicken"));
+			_drinkOfTheDay.push_back(getFoodByName("water"));
+			break;
+		case 1:
+			_foodOfTheDay.push_back(getFoodByName("tack"));
+			_drinkOfTheDay.push_back(getFoodByName("soda"));
+			break;
+		case 2:
+			_drinkOfTheDay.push_back(getFoodByName("seawater"));
+			break;
+		case 3:
+			_drinkOfTheDay.push_back(getFoodByName("syrup"));
+			_foodOfTheDay.push_back(getFoodByName("pizza"));
+			break;
+		case 4:
+			_foodOfTheDay.push_back(getFoodByName("fries"));
+			break;
+		case 5:
+			_foodOfTheDay.push_back(getFoodByName("blue_shroom"));
+			_foodOfTheDay.push_back(getFoodByName("red_shroom"));
+			break;
+		default:
+			//TODO: Here, nothing.
+			break;
+	}
+}
+
 Foodstuff MainState::randomFood ()
 {
-	return _foodList[rand()%_foodList.size()];
+	return _foodOfTheDay[rand()%_foodOfTheDay.size()];
 }
 
 Foodstuff MainState::randomDrink ()
 {
-	return _drinkList[rand()%_drinkList.size()];
+	return _drinkOfTheDay[rand()%_drinkOfTheDay.size()];
 }
 
 void MainState::updateTick() {
@@ -406,7 +446,8 @@ void MainState::updateTick() {
 		else
 		{
 			_texts.get(_journal)->text = "";
-			_day++;
+			if (_day++ != 0)
+				fetchDailyCrate();
 			_msg = 0;
 			_timeOfDay = 0;
 		}

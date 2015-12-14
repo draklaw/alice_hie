@@ -72,8 +72,8 @@
 		}
 	]
 },
-{ // Champignon bleu (croissance)
-	"name": "",
+{
+	"name": "blue_shroom",
 	"type": "food",
 	"tileIndex": 5,
 	"effects": [
@@ -89,8 +89,8 @@
 		}
 	]
 },
-{ // Champignon rouge (rétrécissement)
-	"name": "",
+{
+	"name": "red_shroom",
 	"type": "food",
 	"tileIndex": 6,
 	"effects": [

@@ -58,6 +58,8 @@ class Font;
 #define QUEUE_SCROLL_SPEED 3.
 #define STACK_OFFSET 70
 
+#define QUEUE_SIZE 5
+
 #define TINY_GROWTH 300
 #define START_GROWTH 1000
 #define HUGE_GROWTH 1700
@@ -83,7 +85,7 @@ struct Effect {
 };
 
 struct Foodstuff {
-	string name;                 // Item name.
+	std::string name;            // Item name.
 	Meter type;                  // Should be FOOD or DRINK.
 	int tileIndex;               // Related pic.
 	std::vector<Effect> effects; // List of triggered effects.
@@ -128,6 +130,9 @@ public:
 	void loadFoodSettings(const char* filename);
 	void loadMotd(const char* filename);
 	void startGame();
+	
+	Foodstuff getFoodByName(const std::string& name);
+	void fetchDailyCrate();
 
 	Foodstuff randomFood ();
 	Foodstuff randomDrink ();
