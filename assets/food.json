@@ -12,7 +12,7 @@
 		{
 			"type":     "growth",
 			"cps":      30,
-			"duration": 20
+			"duration": 15
 		}
 	]
 },
