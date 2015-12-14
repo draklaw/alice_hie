@@ -113,15 +113,16 @@ public:
 
 	void layoutScreen();
 
-	EntityRef createSprite(Sprite* sprite, const char* name = nullptr);
+	EntityRef createSprite(Sprite* sprite, const char* name = nullptr,
+	                       unsigned index = 1);
 	EntityRef createSprite(Sprite* sprite, const Vector3& pos,
-	                       const char* name = nullptr);
+	                       const char* name = nullptr, unsigned index = 1);
 	EntityRef createSprite(Sprite* sprite, const Vector3& pos,
 	                       const Vector2& scale,
-	                       const char* name = nullptr);
+	                       const char* name = nullptr, unsigned index = 1);
 	EntityRef createMovingSprite(Sprite* sprite, int tileIndex,
 	                             const Vector3& from, const Vector3& to,
-	                             float duration);
+	                             float duration, const Vector2& anchor);
 	EntityRef createText(const std::string& msg, const Vector3& pos,
 	                     const Vector4& color = Vector4(1, 1, 1, 1));
 
@@ -130,7 +131,7 @@ public:
 	void loadFoodSettings(const char* filename);
 	void loadMotd(const char* filename);
 	void startGame();
-	
+
 	Foodstuff getFoodByName(const std::string& name);
 	void fetchDailyCrate();
 
@@ -187,9 +188,7 @@ public:
 
 	Sprite      _bgSprite;
 	Sprite      _characterSprite;
-	Sprite      _foodBarSprite;
-	Sprite      _waterBarSprite;
-	Sprite      _barBgSprite;
+	Sprite      _barsSprite;
 	Sprite      _foodsSprite;
 
 	EntityRef   _bg;
@@ -199,6 +198,8 @@ public:
 	EntityRef   _waterBar;
 	EntityRef   _foodBarBg;
 	EntityRef   _waterBarBg;
+	EntityRef   _foodBarFg;
+	EntityRef   _waterBarFg;
 	std::vector<EntityRef> _foodEntities;
 	std::vector<EntityRef> _drinkEntities;
 

@@ -128,7 +128,7 @@ void Game::initialize() {
 
 	_window = _sys->createWindow("Alice had it easy", 1280, 720);
 	//_window->setFullscreen(true);
-	_sys->setVSyncEnabled(false);
+	//_sys->setVSyncEnabled(false);
 	log().info("VSync: ", _sys->isVSyncEnabled()? "on": "off");
 
 	_renderModule.reset(new RenderModule(sys(), &_mlogger, DEFAULT_LOG_LEVEL));

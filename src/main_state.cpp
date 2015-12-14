@@ -103,9 +103,7 @@ void MainState::initialize() {
 
 	_bgSprite          = loadSprite("bg.png");
 	_characterSprite   = loadSprite("alice.png", 3, 1);
-	_foodBarSprite     = loadSprite("food_bar.png");
-	_waterBarSprite    = loadSprite("water_bar.png");
-	_barBgSprite       = loadSprite("bar_bg.png");
+	_barsSprite        = loadSprite("bars.png", 3, 2);
 	_foodsSprite       = loadSprite("foods.png", 8, 4);
 
 //	_music1      = _game->audio()->loadMusic(_game->dataPath() / "music1.ogg");
@@ -122,21 +120,25 @@ void MainState::initialize() {
 	_character         = createSprite(&_characterSprite, Vector3(0, 0, 0), "character");
 	_character.sprite()->setAnchor(Vector2(.5, .03));
 
-	_foodBar           = createSprite(&_foodBarSprite,  "food_bar");
-	_waterBar          = createSprite(&_waterBarSprite, "water_bar");
-	_foodBarBg         = createSprite(&_barBgSprite,    "food_bar_bg");
-	_waterBarBg        = createSprite(&_barBgSprite,    "water_bar_bg");
-	_foodBar   .sprite()->setAnchor(Vector2(.5, .5));
-	_waterBar  .sprite()->setAnchor(Vector2(.5, .5));
-	_foodBarBg .sprite()->setAnchor(Vector2(.5, .5));
-	_waterBarBg.sprite()->setAnchor(Vector2(.5, .5));
+	_foodBar           = createSprite(&_barsSprite, "food_bar",     4);
+	_waterBar          = createSprite(&_barsSprite, "water_bar",    1);
+	_foodBarBg         = createSprite(&_barsSprite, "food_bar_bg",  5);
+	_waterBarBg        = createSprite(&_barsSprite, "water_bar_bg", 2);
+	_foodBarFg         = createSprite(&_barsSprite, "food_bar_fg",  3);
+	_waterBarFg        = createSprite(&_barsSprite, "water_bar_fg", 0);
+	_foodBar   .sprite()->setAnchor(Vector2(1, .5));
+	_waterBar  .sprite()->setAnchor(Vector2(0, .5));
+	_foodBarBg .sprite()->setAnchor(Vector2(1, .5));
+	_waterBarBg.sprite()->setAnchor(Vector2(0, .5));
+	_foodBarFg .sprite()->setAnchor(Vector2(1, .5));
+	_waterBarFg.sprite()->setAnchor(Vector2(0, .5));
 
 	for(int i = 0; i < FOOD_QUEUE_SIZE; ++i) {
 		_foodEntities .push_back(createSprite(&_foodsSprite));
 		_drinkEntities.push_back(createSprite(&_foodsSprite));
 
-		_foodEntities .back().sprite()->setAnchor(Vector2(.5, .5));
-		_drinkEntities.back().sprite()->setAnchor(Vector2(.5, .5));
+		_foodEntities .back().sprite()->setAnchor(Vector2(1, .5));
+		_drinkEntities.back().sprite()->setAnchor(Vector2(0, .5));
 	}
 
 	_initialized = true;
@@ -193,22 +195,24 @@ void MainState::layoutScreen() {
 }
 
 
-EntityRef MainState::createSprite(Sprite* sprite, const char* name) {
-	return createSprite(sprite, Vector3(0, 0, 0), Vector2(1, 1), name);
+EntityRef MainState::createSprite(Sprite* sprite, const char* name, unsigned index) {
+	return createSprite(sprite, Vector3(0, 0, 0), Vector2(1, 1), name, index);
 }
 
 
 EntityRef MainState::createSprite(Sprite* sprite, const Vector3& pos,
-								  const char* name) {
-	return createSprite(sprite, pos, Vector2(1, 1), name);
+								  const char* name, unsigned index) {
+	return createSprite(sprite, pos, Vector2(1, 1), name, index);
 }
 
 
 EntityRef MainState::createSprite(Sprite* sprite, const Vector3& pos,
-                                  const Vector2& scale, const char* name) {
+                                  const Vector2& scale, const char* name,
+                                  unsigned index) {
 	EntityRef entity = _entities.createEntity(_entities.root(), name);
 	_sprites.addComponent(entity);
 	entity.sprite()->setSprite(sprite);
+	entity.sprite()->setIndex(index);
 	entity.place(Translation(pos) * Eigen::Scaling(scale.x(), scale.y(), 1.f));
 	_anims.addComponent(entity);
 	return entity;
@@ -217,10 +221,10 @@ EntityRef MainState::createSprite(Sprite* sprite, const Vector3& pos,
 
 EntityRef MainState::createMovingSprite(Sprite* sprite, int tileIndex,
 										const Vector3& from, const Vector3& to,
-										float duration) {
+										float duration, const Vector2& anchor) {
 	EntityRef entity = createSprite(sprite, from);
 	entity.sprite()->setIndex(tileIndex);
-	entity.sprite()->setAnchor(Vector2(.5, .5));
+	entity.sprite()->setAnchor(anchor);
 	_movingSprites.push_back(MovingSprite{entity, to, duration});
 	return entity;
 }
@@ -343,7 +347,7 @@ void MainState::startGame() {
 
 	loadFoodSettings("food.json");
 	fetchDailyCrate();
-	
+
 	srand(time(nullptr));
 	for (unsigned i = 0 ; i < QUEUE_SIZE ; i++)
 	{
@@ -368,11 +372,11 @@ Foodstuff MainState::getFoodByName (const std::string& name)
 	for (Foodstuff& f : _foodList)
 		if (f.name == name)
 			return f;
-		
+
 	for (Foodstuff& f : _drinkList)
 		if (f.name == name)
 			return f;
-	
+
 	throw std::runtime_error("No such foodstuff.");
 }
 
@@ -487,7 +491,7 @@ void MainState::updateTick() {
 		{
 			Vector3 pp = _foodEntities[0].transform().translation();
 			createMovingSprite(&_foodsSprite, _foodQueue.front().tileIndex,
-			                   pp, Vector3(- 32, pp.y(), 0), .5);
+			                   pp, Vector3(- 32, pp.y(), 0), .5, Vector2(1, .5));
 			_foodQueue.pop_front();
 			_foodQueueOffset += 1;
 			_foodQueue.push_back(randomFood());
@@ -550,8 +554,8 @@ void MainState::updateFrame() {
 
 	float bgScale = std::min(float(w) / _bgSprite.width(),
 	                         float(h) / _bgSprite.height());
-	_bg.place(Translation(Vector3(w/2., h/2., -1))
-	                    * Eigen::Scaling(bgScale, bgScale, 1.f));
+	auto bgScaling = Eigen::Scaling(bgScale, bgScale, 1.f);
+	_bg.place(Translation(Vector3(w/2., h/2., -1)) * bgScaling);
 
 	float charScale = bgScale * _size / MAX_GROWTH; //h / 5000. * _size / START_GROWTH;
 	_character.place(Translation(Vector3(w/2, h*0.106, 0))
@@ -562,23 +566,32 @@ void MainState::updateFrame() {
 		_character.sprite()->setIndex(1);
 	else
 		_character.sprite()->setIndex(0);
-		
+
 
 	_journal.place(Transform(Translation(Vector3(w/10, 9./10. * h, 1))));
 
-	_foodBar   .place(Transform(Translation(Vector3(1./4. * w, h/2, .5))));
-	_foodBarBg .place(Transform(Translation(Vector3(1./4. * w, h/2, .4))));
-	_waterBar  .place(Transform(Translation(Vector3(3./4. * w, h/2, .5))));
-	_waterBarBg.place(Transform(Translation(Vector3(3./4. * w, h/2, .4))));
+	float   barHeight = h * .235;
+	float   leftSide  = (w - std::min(w, h)) / 2.;
+	float   rightSide = (w + std::min(w, h)) / 2.;
+	Vector3 fbPos(leftSide,  barHeight, .5);
+	Vector3 dbPos(rightSide, barHeight, .5);
+	_foodBar   .place(Translation(fbPos)                     * bgScaling);
+	_foodBarBg .place(Translation(fbPos - Vector3(0, 0, .1)) * bgScaling);
+	_foodBarFg .place(Translation(fbPos + Vector3(0, 0, .1)) * bgScaling);
+	_waterBar  .place(Translation(dbPos)                     * bgScaling);
+	_waterBarBg.place(Translation(dbPos - Vector3(0, 0, .1)) * bgScaling);
+	_waterBarFg.place(Translation(dbPos + Vector3(0, 0, .1)) * bgScaling);
 
-	_foodBar .sprite()->setView(Box2(Vector2(0, 0), Vector2(1, _foodLevel / MAX_FOOD)));
-	_waterBar.sprite()->setView(Box2(Vector2(0, 0), Vector2(1, _waterLevel / MAX_DRINK)));
+	_foodBar .sprite()->setView(Box2(Vector2(0, 0),
+	                                 Vector2(1, std::min(_foodLevel / MAX_FOOD,   1.f))));
+	_waterBar.sprite()->setView(Box2(Vector2(0, 0),
+	                                 Vector2(1, std::min(_waterLevel / MAX_DRINK, 1.f))));
 
 	float stackOffset = STACK_OFFSET;
 	_foodQueueOffset  = std::max(_foodQueueOffset  - QUEUE_SCROLL_SPEED * fd, 0.);
 	_drinkQueueOffset = std::max(_drinkQueueOffset - QUEUE_SCROLL_SPEED * fd, 0.);
-	Vector3 foodEntityPos (1./8. * w, 1./4. * h + _foodQueueOffset  * stackOffset, .5);
-	Vector3 drinkEntityPos(7./8. * w, 1./4. * h + _drinkQueueOffset * stackOffset, .5);
+	Vector3 foodEntityPos (leftSide,  9./16. * h + _foodQueueOffset  * stackOffset, .5);
+	Vector3 drinkEntityPos(rightSide, 9./16. * h + _drinkQueueOffset * stackOffset, .5);
 	for (unsigned i = 0; i < FOOD_QUEUE_SIZE; ++i) {
 		_foodEntities[i] .place(Transform(Translation(foodEntityPos)));
 		_drinkEntities[i].place(Transform(Translation(drinkEntityPos)));
@@ -607,6 +620,7 @@ void MainState::updateFrame() {
 
 	// Rendering
 
+	glClearColor(133./255., 88./255., 58./255., 1.);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	_game->renderer()->mainBatch().clearBuffers();
