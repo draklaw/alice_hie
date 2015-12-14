@@ -203,7 +203,9 @@ public:
 	Sprite      _foodsSprite;
 	Sprite      _dnSprite;
 	Sprite      _frameSprite;
+	Sprite      _deadSprite;
 	Sprite      _splashSprite;
+	Sprite      _vanishSprite;
 
 	const Sound* _morningSound;
 	const Sound* _eveningSound;
@@ -227,8 +229,11 @@ public:
 	std::vector<EntityRef> _foodEntities;
 	std::vector<EntityRef> _drinkEntities;
 	EntityRef   _dn;
+	EntityRef   _dead;
 	EntityRef   _splash;
+	EntityRef   _vanish;
 	EntityRef   _dayCounter;
+	EntityRef   _deathMsg;
 
 	Frame       _frame;
 
