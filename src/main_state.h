@@ -124,7 +124,7 @@ public:
 	EntityRef createMovingSprite(Sprite* sprite, int tileIndex,
 	                             const Vector3& from, const Vector3& to,
 	                             float duration,
-								 const Vector2& anchor = Vector2(.5, .5));
+	                             const Vector2& anchor = Vector2(.5, .5));
 	EntityRef createText(const std::string& msg, const Vector3& pos,
 	                     const Vector4& color = Vector4(1, 1, 1, 1));
 
@@ -196,6 +196,7 @@ public:
 	Sprite      _foodsSprite;
 	Sprite      _dnSprite;
 	Sprite      _frameSprite;
+	Sprite      _splashSprite;
 
 	EntityRef   _bg;
 	EntityRef   _journal;
@@ -209,6 +210,7 @@ public:
 	std::vector<EntityRef> _foodEntities;
 	std::vector<EntityRef> _drinkEntities;
 	EntityRef   _dn;
+	EntityRef   _splash;
 
 	Frame       _frame;
 

@@ -108,6 +108,7 @@ void MainState::initialize() {
 	_foodsSprite       = loadSprite("foods.png", 8, 4);
 	_dnSprite          = loadSprite("dn.png");
 	_frameSprite       = loadSprite("frame.png", 3, 3, Texture::NEAREST | Texture::CLAMP);
+	_splashSprite      = loadSprite("splash.png");
 
 //	_music1      = _game->audio()->loadMusic(_game->dataPath() / "music1.ogg");
 
@@ -146,7 +147,10 @@ void MainState::initialize() {
 	}
 
 	_dn                = createSprite(&_dnSprite);
-	_dn.sprite()->setAnchor(Vector2(.5, .5));
+	_dn        .sprite()->setAnchor(Vector2(.5, .5));
+
+	_splash            = createSprite(&_splashSprite, "splash");
+	_splash    .sprite()->setAnchor(Vector2(.5, .5));
 
 	_frame.background  = &_frameSprite;
 
@@ -657,6 +661,8 @@ void MainState::updateFrame() {
 	float time = std::min(_timeOfDay / DAY_LENGTH, 1.f);
 	_dn.place(Translation(Vector3(w*.5, h, .2))
 		* AngleAxis(-time * M_PI * 2., Vector3::UnitZ()));
+
+	_splash.place(Translation(w*.5, h*.5, (_state == Dead)? 1: -2) * bgScaling);
 
 	float margin    = 32;
 	_frame.position = Vector3(w * .1 - margin,   h * .7 + margin, .9);
