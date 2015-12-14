@@ -88,8 +88,8 @@ void MainState::initialize() {
 	_drinkInput  = _inputs.addInput("drink");
 	_eatInput    = _inputs.addInput("eat");
 
-	_inputs.mapScanCode(_drinkInput, SDL_SCANCODE_DOWN);
-	_inputs.mapScanCode(_eatInput,   SDL_SCANCODE_UP);
+	_inputs.mapScanCode(_drinkInput, SDL_SCANCODE_LEFT);
+	_inputs.mapScanCode(_eatInput,   SDL_SCANCODE_RIGHT);
 
 	//TODO: Remove cheats.
 	_debugInput = _inputs.addInput("debug");
