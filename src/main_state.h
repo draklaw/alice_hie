@@ -125,7 +125,7 @@ public:
 	                             const Vector3& from, const Vector3& to,
 	                             float duration,
 	                             const Vector2& anchor = Vector2(.5, .5));
-	EntityRef createText(const std::string& msg, const Vector3& pos,
+	EntityRef createText(Font* font, const std::string& msg, const Vector3& pos,
 	                     const Vector4& color = Vector4(1, 1, 1, 1));
 
 	bool loadEffect(Effect* effect, const Json::Value& json);
@@ -228,6 +228,7 @@ public:
 	std::vector<EntityRef> _drinkEntities;
 	EntityRef   _dn;
 	EntityRef   _splash;
+	EntityRef   _dayCounter;
 
 	Frame       _frame;
 

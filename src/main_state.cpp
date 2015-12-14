@@ -102,6 +102,12 @@ void MainState::initialize() {
 	_font.reset(new Font(_fontJson, _fontTex));
 	_font->baselineToTop = 12;
 
+	_font2Json = _game->sys()->loader().getJson("please.json");
+	_font2Tex  = _game->renderer()->getTexture(_font2Json["file"].asString(),
+	        Texture::NEAREST | Texture::REPEAT);
+	_font2.reset(new Font(_font2Json, _font2Tex));
+	_font2->baselineToTop = 56;
+
 	_bgSprite          = loadSprite("bg.png");
 	_characterSprite   = loadSprite("alice.png", 3, 1);
 	_barsSprite        = loadSprite("bars.png", 3, 2);
@@ -127,7 +133,7 @@ void MainState::initialize() {
 	_bg                = createSprite(&_bgSprite, "bg");
 	_bg.sprite()->setAnchor(Vector2(.5, .5));
 
-	_journal           = createText("",Vector3(0,0,0));
+	_journal           = createText(_font.get(), "",Vector3(0,0,0));
 	_texts.get(_journal)->color = Vector4(132/255., 87/255., 57/255., 1.);
 	_character         = createSprite(&_characterSprite, Vector3(0, 0, 0), "character");
 	_character.sprite()->setAnchor(Vector2(.5, .03));
@@ -158,6 +164,9 @@ void MainState::initialize() {
 
 	_splash            = createSprite(&_splashSprite, "splash");
 	_splash    .sprite()->setAnchor(Vector2(.5, .5));
+
+	_dayCounter        = createText(_font2.get(), "", Vector3(0,0,0),
+	                                Vector4(56/255., 32/255., 16/255., 1));
 
 	_frame.background  = &_frameSprite;
 
@@ -264,12 +273,12 @@ EntityRef MainState::createMovingSprite(Sprite* sprite, int tileIndex,
 }
 
 
-EntityRef MainState::createText(const std::string& text, const Vector3& pos,
-                                      const Vector4& color) {
+EntityRef MainState::createText(Font* font, const std::string& text,
+                                const Vector3& pos, const Vector4& color) {
 	EntityRef entity = _entities.createEntity(_entities.root(), "text");
 	_texts.addComponent(entity);
 	TextComponent* comp = _texts.get(entity);
-	comp->font = _font.get();
+	comp->font = font;
 	comp->text = text;
 	comp->color = color;
 	entity.place(Transform(Translation(pos)));
@@ -399,6 +408,8 @@ void MainState::startGame() {
 	float inf = std::numeric_limits<float>::infinity();
 	_activeEffects.push_back({FOOD,-30,inf,inf,nullptr});
 	_activeEffects.push_back({DRINK,-50,inf,inf,nullptr});
+
+	_texts.get(_dayCounter)->text = "Day 1";
 }
 
 //NOTE: Should probably be a lambda or something but frankly IDC.
@@ -497,6 +508,7 @@ void MainState::updateTick() {
 			_msg = 0;
 			_timeOfDay = 0;
 			_playOnce ^= true;
+			_texts.get(_dayCounter)->text = "Day " + std::to_string(_day);
 			_game->audio()->playSound(_morningSound, 0);
 		}
 
@@ -700,6 +712,8 @@ void MainState::updateFrame() {
 		* AngleAxis(-time * M_PI * 2., Vector3::UnitZ()));
 
 	_splash.place(Translation(w*.5, h*.5, (_state == Blown)? 1: -2) * bgScaling);
+
+	_dayCounter.place(Translation(w*.5 - h*.42, h * .92, .7) * bgScaling);
 
 	float margin    = 32;
 	_frame.position = Vector3(w * .1 - margin,   h * .7 + margin, .9);
