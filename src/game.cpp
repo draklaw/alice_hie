@@ -137,6 +137,8 @@ void Game::initialize() {
 
 	_audio.reset(new SoundPlayer(this));
 	_audio->setMusicVolume(.2);
+	_music = _audio->loadMusic(dataPath() / "alice_hie.ogg");
+	_audio->playMusic(_music);
 
 	_screenState.reset(new ScreenState(this));
 	_screenState->initialize();
