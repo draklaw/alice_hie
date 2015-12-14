@@ -367,13 +367,14 @@ void MainState::startGame() {
 	_state               = Playing;
 	_lastFrameTime       = _loop.frameTime();
 
+	_playOnce = false;
+
 	_timeOfDay = DAY_LENGTH+.01;
 	_day = _msg = 0;
 	loadMotd("motd.json");
 
 	_drinkDelay = -1;
 	_eatDelay = -1;
-
 
 	_foodLevel           = MAX_FOOD;
 	_waterLevel          = MAX_DRINK;
