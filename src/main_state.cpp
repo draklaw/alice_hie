@@ -88,8 +88,8 @@ void MainState::initialize() {
 	_drinkInput  = _inputs.addInput("drink");
 	_eatInput    = _inputs.addInput("eat");
 
-	_inputs.mapScanCode(_drinkInput, SDL_SCANCODE_LEFT);
-	_inputs.mapScanCode(_eatInput,   SDL_SCANCODE_RIGHT);
+	_inputs.mapScanCode(_drinkInput, SDL_SCANCODE_RIGHT);
+	_inputs.mapScanCode(_eatInput,   SDL_SCANCODE_LEFT);
 
 	//TODO: Remove cheats.
 	_debugInput = _inputs.addInput("debug");
@@ -499,15 +499,17 @@ void MainState::updateTick() {
 		}
 	}
 
-	if (_eatDelay > DOUBLE_TAP_TIME && _foodLevel < MAX_FOOD)
+	if (_eatDelay > DOUBLE_TAP_TIME)
 	{
-		for (Effect& e : _foodQueue[0].effects)
-			_activeEffects.push_back(e);
+		if (_foodLevel < MAX_FOOD)
+		{
+			for (Effect& e : _foodQueue[0].effects)
+				_activeEffects.push_back(e);
 
-		_foodQueue.pop_front();
-		_foodQueueOffset += 1;
-		_foodQueue.push_back(randomFood());
-
+			_foodQueue.pop_front();
+			_foodQueueOffset += 1;
+			_foodQueue.push_back(randomFood());
+		}
 		_eatDelay = -1;
 	}
 	else if (_eatDelay >= 0)
@@ -525,15 +527,17 @@ void MainState::updateTick() {
 		}
 	}
 
-	if (_drinkDelay > DOUBLE_TAP_TIME && _waterLevel < MAX_DRINK)
+	if (_drinkDelay > DOUBLE_TAP_TIME)
 	{
-		for (Effect& e : _drinkQueue[0].effects)
-			_activeEffects.push_back(e);
+		if (_waterLevel < MAX_DRINK)
+		{
+			for (Effect& e : _drinkQueue[0].effects)
+				_activeEffects.push_back(e);
 
-		_drinkQueue.pop_front();
-		_drinkQueueOffset += 1;
-		_drinkQueue.push_back(randomDrink());
-
+			_drinkQueue.pop_front();
+			_drinkQueueOffset += 1;
+			_drinkQueue.push_back(randomDrink());
+		}
 		_drinkDelay = -1;
 	}
 	else if (_drinkDelay >= 0)
