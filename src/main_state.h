@@ -83,8 +83,9 @@ struct Effect {
 };
 
 struct Foodstuff {
+	string name;                 // Item name.
 	Meter type;                  // Should be FOOD or DRINK.
-	int tileIndex;
+	int tileIndex;               // Related pic.
 	std::vector<Effect> effects; // List of triggered effects.
 };
 
@@ -207,6 +208,9 @@ public:
 
 	std::vector<Foodstuff> _foodList;
 	std::vector<Foodstuff> _drinkList;
+
+	std::vector<Foodstuff> _foodOfTheDay;
+	std::vector<Foodstuff> _drinkOfTheDay;
 
 	std::deque<Foodstuff> _foodQueue;
 	std::deque<Foodstuff> _drinkQueue;

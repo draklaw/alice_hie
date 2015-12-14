@@ -259,6 +259,7 @@ bool MainState::loadFood(Foodstuff* foodstuff, const Json::Value& json) {
 	else if(type == "drink") foodstuff->type = DRINK;
 	else throw std::runtime_error("Unknown foodstuff type "+type);
 
+	foodstuff->name = json["name"].asString();
 	foodstuff->tileIndex = json.get("tileIndex", 0).asInt();
 
 	foodstuff->effects.clear();
