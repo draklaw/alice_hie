@@ -66,6 +66,7 @@ class Font;
 #define MAX_DRINK 2000
 
 #define DAY_LENGTH 30
+#define MSG_DELAY 3
 
 #define DOUBLE_TAP_TIME 0.3
 

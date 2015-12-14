@@ -390,13 +390,14 @@ void MainState::updateTick() {
 		return;
 
 	float td = float(_loop.tickDuration()) / ONE_SEC;
+	_timeOfDay += td;
 
 	if (_timeOfDay > DAY_LENGTH)
 	{
 		if (_day > _motd.size())
 			return; //FIXME: Congratulations ! You win nothing.
 
-		if (_drinkInput->justPressed())
+		if (_drinkInput->justPressed() && _timeOfDay > DAY_LENGTH + MSG_DELAY)
 			_msg++;
 
 		if (_msg < _motd[_day].size())
@@ -410,7 +411,7 @@ void MainState::updateTick() {
 		}
 
 		return;
-	} else _timeOfDay += td;
+	}
 
 	for (Effect& e : _activeEffects)
 	{
