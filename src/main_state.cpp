@@ -441,7 +441,8 @@ void MainState::startGame() {
 	_activeEffects.push_back({DRINK,-50,inf,inf,nullptr});
 
 	_texts.get(_dayCounter)->text = "";
-// 	_texts.get(_deathMsg)  ->text = "";
+
+	_deathTimer = 0;
 }
 
 //NOTE: Should probably be a lambda or something but frankly IDC.
@@ -509,10 +510,18 @@ void MainState::updateTick() {
 		startGame();
 	}
 
-	if(_state != Playing)
-		return;
-
 	float td = float(_loop.tickDuration()) / ONE_SEC;
+
+	if(_state != Playing) {
+		_deathTimer += td;
+		if(_deathTimer > 2 && (_eatInput->justPressed() || _drinkInput->justPressed())) {
+			_game->screenState()->setBg("credits.png");
+			_game->setNextState(_game->screenState());
+			quit();
+		}
+		return;
+	}
+
 	_timeOfDay += td;
 
 	if (_timeOfDay > DAY_LENGTH)

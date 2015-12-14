@@ -273,6 +273,8 @@ public:
 
 	std::vector<Effect> _activeEffects;
 
+	float       _deathTimer;
+
 };
 
 

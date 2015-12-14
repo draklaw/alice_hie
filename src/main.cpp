@@ -25,8 +25,8 @@ int main(int argc, char** argv) {
 	Game game(argc, argv);
 	game.initialize();
 
-	//game.setNextState(game.screenState());
-	game.setNextState(game.mainState());
+	game.setNextState(game.screenState());
+	//game.setNextState(game.mainState());
 	game.run();
 
 	game.shutdown();

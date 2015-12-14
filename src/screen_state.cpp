@@ -39,15 +39,18 @@ ScreenState::ScreenState(Game* game)
 
 
 void ScreenState::initialize() {
+	int w = _game->window()->width();
+	int h = _game->window()->height();
+	glViewport(0, 0, w, h);
 	_camera.setViewBox(Box3(
-		Vector3(  0,   0, -1),
-		Vector3(640, 360,  1)
+		Vector3(0, 0, -1),
+		Vector3(w, h,  1)
 	));
 
 	_bg = _entities.createEntity(_entities.root());
 	_sprites.addComponent(_bg);
 
-	setBg("dummy.png");
+	setBg("title.png");
 }
 
 
@@ -61,7 +64,8 @@ void ScreenState::run() {
 
 	while(_running) {
 		_game->sys()->waitAndDispatchSystemEvents();
-		if(_game->sys()->getKeyState(SDL_SCANCODE_SPACE)) {
+		if(_game->sys()->getKeyState(SDL_SCANCODE_LEFT)
+		|| _game->sys()->getKeyState(SDL_SCANCODE_RIGHT)) {
 			_game->setNextState(_game->mainState());
 			_running = false;
 		}
@@ -87,8 +91,10 @@ void ScreenState::quit() {
 
 void ScreenState::setBg(const std::string& bg) {
 	Texture* tex = _game->renderer()->getTexture(
-	            bg, Texture::NEAREST | Texture::CLAMP);
+	            bg, Texture::BILINEAR | Texture::CLAMP);
 	_sprite.reset(new Sprite(tex));
 
 	_bg.sprite()->setSprite(_sprite.get());
+	float s = float(_game->window()->height()) / tex->height();
+	_bg.place(Transform(Eigen::Scaling(s, s, 1.f)));
 }
