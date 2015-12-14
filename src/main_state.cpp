@@ -376,8 +376,8 @@ void MainState::startGame() {
 
 	// Natural hunger and thirst.
 	float inf = std::numeric_limits<float>::infinity();
-	_activeEffects.push_back({FOOD,-60,inf,inf,nullptr});
-	_activeEffects.push_back({DRINK,-100,inf,inf,nullptr});
+	_activeEffects.push_back({FOOD,-30,inf,inf,nullptr});
+	_activeEffects.push_back({DRINK,-50,inf,inf,nullptr});
 }
 
 //NOTE: Should probably be a lambda or something but frankly IDC.
@@ -464,8 +464,9 @@ void MainState::updateTick() {
 		else
 		{
 			_texts.get(_journal)->text = "";
-			if (_day++ != 0)
+			if (_day != 0)
 				fetchDailyCrate();
+			_day++;
 			_msg = 0;
 			_timeOfDay = 0;
 		}

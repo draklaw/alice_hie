@@ -79,7 +79,7 @@
 	"effects": [
 		{
 			"type":     "food",
-			"cps":      15,
+			"cps":      5,
 			"duration": 10
 		},
 		{
@@ -96,7 +96,7 @@
 	"effects": [
 		{
 			"type":     "food",
-			"cps":      15,
+			"cps":      5,
 			"duration": 10
 		},
 		{
@@ -114,7 +114,7 @@
 		{
 			"type":     "drink",
 			"cps":      80,
-			"duration": 4
+			"duration": 5
 		},
 		{
 			"type":     "growth",
@@ -140,7 +140,7 @@
 		},
 		{
 			"type":     "growth",
-			"cps":      -20,
+			"cps":      -10,
 			"duration": 10
 		}
 	]
