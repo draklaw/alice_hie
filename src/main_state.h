@@ -56,6 +56,7 @@ class Font;
 
 #define FOOD_QUEUE_SIZE 10
 #define QUEUE_SCROLL_SPEED 3.
+#define STACK_OFFSET 70
 
 #define MAX_FOOD 2000
 #define MAX_DRINK 2000

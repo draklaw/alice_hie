@@ -101,8 +101,8 @@ void MainState::initialize() {
 	_font.reset(new Font(_fontJson, _fontTex));
 	_font->baselineToTop = 12;
 
-	_bgSprite          = loadSprite("dummy.png");
-	_characterSprite   = loadSprite("dummy.png");
+	_bgSprite          = loadSprite("bg.png");
+	_characterSprite   = loadSprite("alice.png", 3, 1);
 	_foodBarSprite     = loadSprite("food_bar.png");
 	_waterBarSprite    = loadSprite("water_bar.png");
 	_barBgSprite       = loadSprite("bar_bg.png");
@@ -115,10 +115,12 @@ void MainState::initialize() {
 //	_damageAnim.reset(new MoveAnim(ONE_SEC/2, Vector3(0, 30, 0), RELATIVE));
 //	_damageAnim->onEnd = [this](_Entity* e){ _entities.destroyEntity(EntityRef(e)); };
 
-//	_bg                = createSprite(&_bgSprite, Vector3(0, 0, 0), Vector2(2, 2), "bg");
+	_bg                = createSprite(&_bgSprite, "bg");
+	_bg.sprite()->setAnchor(Vector2(.5, .5));
+
 	_journal           = createText("",Vector3(0,0,0));
-	_character         = createSprite(&_bgSprite, Vector3(0, 0, 0), "character");
-	_character.sprite()->setAnchor(Vector2(.5, 0));
+	_character         = createSprite(&_characterSprite, Vector3(0, 0, 0), "character");
+	_character.sprite()->setAnchor(Vector2(.5, .03));
 
 	_foodBar           = createSprite(&_foodBarSprite,  "food_bar");
 	_waterBar          = createSprite(&_waterBarSprite, "water_bar");
@@ -309,10 +311,10 @@ void MainState::loadFoodSettings(const char* filename) {
 void MainState::loadMotd(const char* filename)
 {
 	_motd.clear();
-	
+
 	Path path = _game->dataPath() / filename;
 	std::ifstream jsonFile(path.native());
-	
+
 	try {
 		jsonFile >> _motd;
 	} catch (std::exception& e) {
@@ -378,25 +380,25 @@ Foodstuff MainState::randomDrink ()
 
 void MainState::updateTick() {
 	_inputs.sync();
-	
+
 	if(_debugInput->justPressed()) {
 		// Hey ! Insert debug action here !
 		startGame();
 	}
-	
+
 	if(_state == Dead)
 		return;
-	
+
 	float td = float(_loop.tickDuration()) / ONE_SEC;
-	
+
 	if (_timeOfDay > DAY_LENGTH)
 	{
 		if (_day > _motd.size())
 			return; //FIXME: Congratulations ! You win nothing.
-		
+
 		if (_drinkInput->justPressed())
 			_msg++;
-		
+
 		if (_msg < _motd[_day].size())
 			_texts.get(_journal)->text = _motd[_day][_msg].asString();
 		else
@@ -406,10 +408,10 @@ void MainState::updateTick() {
 			_msg = 0;
 			_timeOfDay = 0;
 		}
-		
+
 		return;
 	} else _timeOfDay += td;
-	
+
 	for (Effect& e : _activeEffects)
 	{
 		float amount = e.changePerSecond * td;
@@ -427,14 +429,14 @@ void MainState::updateTick() {
 		}
 		e.effectDuration -= td;
 	}
-	
+
 	//NOTE: StackOverflow comment (+20) :
 	// "STL 'idioms' like this make me use Python for small projects."
 	_activeEffects.erase(
 		std::remove_if(_activeEffects.begin(), _activeEffects.end(),
 			[] (const Effect& e)->bool { return e.effectDuration <= 0; }),
 		_activeEffects.end());
-	
+
 	if (_eatInput->justPressed()) {
 		if (_eatDelay < 0)
 			_eatDelay = 0;
@@ -449,7 +451,7 @@ void MainState::updateTick() {
 			_eatDelay = -1;
 		}
 	}
-	
+
 	if (_eatDelay > DOUBLE_TAP_TIME && _foodLevel < MAX_FOOD)
 	{
 		for (Effect& e : _foodQueue[0].effects)
@@ -480,16 +482,16 @@ void MainState::updateTick() {
 	{
 		for (Effect& e : _drinkQueue[0].effects)
 			_activeEffects.push_back(e);
-		
+
 		_drinkQueue.pop_front();
 		_drinkQueueOffset += 1;
 		_drinkQueue.push_back(randomDrink());
-		
+
 		_drinkDelay = -1;
 	}
 	else if (_drinkDelay >= 0)
 		_drinkDelay += td;
-	
+
 	if(_size <= 0 || _size > MAX_GROWTH || _foodLevel <= 0 || _waterLevel <= 0)
 		_state = Dead;
 
@@ -503,8 +505,15 @@ void MainState::updateFrame() {
 	int w = _game->window()->width();
 	int h = _game->window()->height();
 
-	_character.place(Translation(Vector3(w/2, h/4, 0))
-	               * Eigen::Scaling(_size/START_GROWTH, _size/START_GROWTH, 1.f));
+	float bgScale = std::min(float(w) / _bgSprite.width(),
+	                         float(h) / _bgSprite.height());
+	_bg.place(Translation(Vector3(w/2., h/2., -1))
+	                    * Eigen::Scaling(bgScale, bgScale, 1.f));
+
+	float charScale = bgScale * _size / MAX_GROWTH; //h / 5000. * _size / START_GROWTH;
+	_character.place(Translation(Vector3(w/2, h*0.106, 0))
+	               * Eigen::Scaling(charScale, charScale, 1.f));
+	//_character.sprite()->setIndex(1);
 
 	_journal.place(Transform(Translation(Vector3(w/10, 9./10. * h, 1))));
 
@@ -516,7 +525,7 @@ void MainState::updateFrame() {
 	_foodBar .sprite()->setView(Box2(Vector2(0, 0), Vector2(1, _foodLevel / MAX_FOOD)));
 	_waterBar.sprite()->setView(Box2(Vector2(0, 0), Vector2(1, _waterLevel / MAX_DRINK)));
 
-	float stackOffset = 40;
+	float stackOffset = STACK_OFFSET;
 	_foodQueueOffset  = std::max(_foodQueueOffset  - QUEUE_SCROLL_SPEED * fd, 0.);
 	_drinkQueueOffset = std::max(_drinkQueueOffset - QUEUE_SCROLL_SPEED * fd, 0.);
 	Vector3 foodEntityPos (1./8. * w, 1./4. * h + _foodQueueOffset  * stackOffset, .5);
