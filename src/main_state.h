@@ -103,7 +103,8 @@ public:
 	MainState(Game* game);
 	~MainState();
 
-	Sprite loadSprite(const char* file, unsigned th = 1, unsigned tv = 1);
+	Sprite loadSprite(const char* file, unsigned th = 1, unsigned tv = 1,
+	                  unsigned flags = Texture::BILINEAR | Texture::CLAMP);
 
 	virtual void initialize();
 	virtual void shutdown();
@@ -194,6 +195,7 @@ public:
 	Sprite      _barsSprite;
 	Sprite      _foodsSprite;
 	Sprite      _dnSprite;
+	Sprite      _frameSprite;
 
 	EntityRef   _bg;
 	EntityRef   _journal;
@@ -207,6 +209,8 @@ public:
 	std::vector<EntityRef> _foodEntities;
 	std::vector<EntityRef> _drinkEntities;
 	EntityRef   _dn;
+
+	Frame       _frame;
 
 	// Game states
 
