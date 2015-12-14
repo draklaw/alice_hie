@@ -328,7 +328,7 @@ void MainState::startGame() {
 	_state               = Playing;
 	_lastFrameTime       = _loop.frameTime();
 
-	_timeOfDay = 0;
+	_timeOfDay = DAY_LENGTH+1;
 	_day = _msg = 0;
 	loadMotd("motd.json");
 
