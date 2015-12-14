@@ -56,7 +56,7 @@ class Font;
 
 #define FOOD_QUEUE_SIZE 10
 #define QUEUE_SCROLL_SPEED 3.
-#define STACK_OFFSET 70
+#define STACK_OFFSET 100
 
 #define QUEUE_SIZE 5
 
@@ -122,7 +122,8 @@ public:
 	                       const char* name = nullptr, unsigned index = 1);
 	EntityRef createMovingSprite(Sprite* sprite, int tileIndex,
 	                             const Vector3& from, const Vector3& to,
-	                             float duration, const Vector2& anchor);
+	                             float duration,
+								 const Vector2& anchor = Vector2(.5, .5));
 	EntityRef createText(const std::string& msg, const Vector3& pos,
 	                     const Vector4& color = Vector4(1, 1, 1, 1));
 
@@ -140,6 +141,8 @@ public:
 
 	void updateTick();
 	void updateFrame();
+
+	Vector3 aliceMouthPos() const;
 
 	Logger& log();
 
