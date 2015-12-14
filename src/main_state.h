@@ -193,6 +193,7 @@ public:
 	Sprite      _characterSprite;
 	Sprite      _barsSprite;
 	Sprite      _foodsSprite;
+	Sprite      _dnSprite;
 
 	EntityRef   _bg;
 	EntityRef   _journal;
@@ -205,6 +206,7 @@ public:
 	EntityRef   _waterBarFg;
 	std::vector<EntityRef> _foodEntities;
 	std::vector<EntityRef> _drinkEntities;
+	EntityRef   _dn;
 
 	// Game states
 

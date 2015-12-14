@@ -105,6 +105,7 @@ void MainState::initialize() {
 	_characterSprite   = loadSprite("alice.png", 3, 1);
 	_barsSprite        = loadSprite("bars.png", 3, 2);
 	_foodsSprite       = loadSprite("foods.png", 8, 4);
+	_dnSprite          = loadSprite("dn.png");
 
 //	_music1      = _game->audio()->loadMusic(_game->dataPath() / "music1.ogg");
 
@@ -140,6 +141,9 @@ void MainState::initialize() {
 		_foodEntities .back().sprite()->setAnchor(Vector2(.5, .5));
 		_drinkEntities.back().sprite()->setAnchor(Vector2(.5, .5));
 	}
+
+	_dn                = createSprite(&_dnSprite);
+	_dn.sprite()->setAnchor(Vector2(.5, .5));
 
 	_initialized = true;
 }
@@ -347,7 +351,7 @@ void MainState::startGame() {
 	_state               = Playing;
 	_lastFrameTime       = _loop.frameTime();
 
-	_timeOfDay = DAY_LENGTH+1;
+	_timeOfDay = DAY_LENGTH+.01;
 	_day = _msg = 0;
 	loadMotd("motd.json");
 
@@ -644,6 +648,10 @@ void MainState::updateFrame() {
 			ms.entity.place(Transform(Translation(Vector3(-1000, -1000, -1000))));
 		}
 	}
+
+	float time = std::min(_timeOfDay / DAY_LENGTH, 1.f);
+	_dn.place(Translation(Vector3(w*.5, h, .2))
+		* AngleAxis(-time * M_PI * 2., Vector3::UnitZ()));
 
 	// Rendering
 
