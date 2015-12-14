@@ -137,8 +137,8 @@ void MainState::initialize() {
 		_foodEntities .push_back(createSprite(&_foodsSprite));
 		_drinkEntities.push_back(createSprite(&_foodsSprite));
 
-		_foodEntities .back().sprite()->setAnchor(Vector2(1, .5));
-		_drinkEntities.back().sprite()->setAnchor(Vector2(0, .5));
+		_foodEntities .back().sprite()->setAnchor(Vector2(.5, .5));
+		_drinkEntities.back().sprite()->setAnchor(Vector2(.5, .5));
 	}
 
 	_initialized = true;
@@ -222,10 +222,24 @@ EntityRef MainState::createSprite(Sprite* sprite, const Vector3& pos,
 EntityRef MainState::createMovingSprite(Sprite* sprite, int tileIndex,
 										const Vector3& from, const Vector3& to,
 										float duration, const Vector2& anchor) {
-	EntityRef entity = createSprite(sprite, from);
+	EntityRef entity;
+	for(MovingSprite& ms: _movingSprites) {
+		if(ms.timeRemaining <= 0) {
+			entity           = ms.entity;
+			entity.place(Transform(Translation(from)));
+			ms.target        = to;
+			ms.timeRemaining = duration;
+			break;
+		}
+	}
+	if(!entity.isValid()) {
+		entity = createSprite(sprite, from);
+		_movingSprites.push_back(MovingSprite{entity, to, duration});
+		log().info("Add MovingSprite...");
+	}
+
 	entity.sprite()->setIndex(tileIndex);
 	entity.sprite()->setAnchor(anchor);
-	_movingSprites.push_back(MovingSprite{entity, to, duration});
 	return entity;
 }
 
@@ -491,7 +505,7 @@ void MainState::updateTick() {
 		{
 			Vector3 pp = _foodEntities[0].transform().translation();
 			createMovingSprite(&_foodsSprite, _foodQueue.front().tileIndex,
-			                   pp, Vector3(- 32, pp.y(), 0), .5, Vector2(1, .5));
+			                   pp, Vector3(- 32, pp.y(), 0), .5);
 			_foodQueue.pop_front();
 			_foodQueueOffset += 1;
 			_foodQueue.push_back(randomFood());
@@ -505,6 +519,10 @@ void MainState::updateTick() {
 		{
 			for (Effect& e : _foodQueue[0].effects)
 				_activeEffects.push_back(e);
+
+			Vector3 pp = _foodEntities[0].transform().translation();
+			createMovingSprite(&_foodsSprite, _foodQueue.front().tileIndex,
+			                   pp, aliceMouthPos(), .5);
 
 			_foodQueue.pop_front();
 			_foodQueueOffset += 1;
@@ -520,6 +538,10 @@ void MainState::updateTick() {
 			_drinkDelay = 0;
 		else if (_drinkDelay < DOUBLE_TAP_TIME)
 		{
+			Vector3 pp = _drinkEntities[0].transform().translation();
+			int w = _game->window()->width();
+			createMovingSprite(&_foodsSprite, _drinkQueue.front().tileIndex,
+			                   pp, Vector3(w + 32, pp.y(), 0), .5);
 			_drinkQueue.pop_front();
 			_drinkQueueOffset += 1;
 			_drinkQueue.push_back(randomDrink());
@@ -533,6 +555,10 @@ void MainState::updateTick() {
 		{
 			for (Effect& e : _drinkQueue[0].effects)
 				_activeEffects.push_back(e);
+
+			Vector3 pp = _drinkEntities[0].transform().translation();
+			createMovingSprite(&_foodsSprite, _drinkQueue.front().tileIndex,
+			                   pp, aliceMouthPos(), .5);
 
 			_drinkQueue.pop_front();
 			_drinkQueueOffset += 1;
@@ -591,14 +617,16 @@ void MainState::updateFrame() {
 	_waterBar.sprite()->setView(Box2(Vector2(0, 0),
 	                                 Vector2(1, std::min(_waterLevel / MAX_DRINK, 1.f))));
 
-	float stackOffset = STACK_OFFSET;
+	float stackOffset = STACK_OFFSET * bgScale;
 	_foodQueueOffset  = std::max(_foodQueueOffset  - QUEUE_SCROLL_SPEED * fd, 0.);
 	_drinkQueueOffset = std::max(_drinkQueueOffset - QUEUE_SCROLL_SPEED * fd, 0.);
-	Vector3 foodEntityPos (leftSide,  9./16. * h + _foodQueueOffset  * stackOffset, .5);
-	Vector3 drinkEntityPos(rightSide, 9./16. * h + _drinkQueueOffset * stackOffset, .5);
+	Vector3 foodEntityPos (leftSide  - STACK_OFFSET * bgScale * .65,
+	                       9./16. * h + _foodQueueOffset  * stackOffset, .5);
+	Vector3 drinkEntityPos(rightSide + STACK_OFFSET * bgScale * .65,
+	                       9./16. * h + _drinkQueueOffset * stackOffset, .5);
 	for (unsigned i = 0; i < FOOD_QUEUE_SIZE; ++i) {
-		_foodEntities[i] .place(Transform(Translation(foodEntityPos)));
-		_drinkEntities[i].place(Transform(Translation(drinkEntityPos)));
+		_foodEntities[i] .place(Translation(foodEntityPos)  * bgScaling);
+		_drinkEntities[i].place(Translation(drinkEntityPos) * bgScaling);
 		foodEntityPos  += Vector3(0, stackOffset, 0);
 		drinkEntityPos += Vector3(0, stackOffset, 0);
 		_foodEntities [i].sprite()->setIndex((i < _foodQueue .size())?_foodQueue [i].tileIndex:31);
@@ -606,21 +634,15 @@ void MainState::updateFrame() {
 	}
 
 	for(MovingSprite& ms: _movingSprites) {
-		if(fd >= ms.timeRemaining) {
-			ms.timeRemaining = 0;
-			ms.entity.place(Transform(Translation(ms.target)));
-		} else {
+		if(ms.timeRemaining > 0) {
 			Vector3 pos = ms.entity.transform().translation();
 			Vector3 diff = ms.target - pos;
 			ms.entity.place(Transform(Translation(pos + diff * (fd / ms.timeRemaining))));
 			ms.timeRemaining -= fd;
+		} else {
+			ms.entity.place(Transform(Translation(Vector3(-1000, -1000, -1000))));
 		}
 	}
-
-	_movingSprites.erase(
-		std::remove_if(_movingSprites.begin(), _movingSprites.end(),
-			[] (const MovingSprite& ms)->bool { return ms.timeRemaining <= 0; }),
-		_movingSprites.end());
 
 	// Rendering
 
@@ -653,6 +675,15 @@ void MainState::updateFrame() {
 
 	LAIR_LOG_OPENGL_ERRORS_TO(log());
 }
+
+
+Vector3 MainState::aliceMouthPos() const {
+	int w = _game->window()->width();
+	int h = _game->window()->height();
+	Vector3 pos = _character.transform().translation();
+	return Vector3(pos.x(), pos.y() + _size * h  / MAX_GROWTH * .75, pos.z());
+}
+
 
 Logger& MainState::log() {
 	return _game->log();
