@@ -109,7 +109,14 @@ void MainState::initialize() {
 
 //	_music1      = _game->audio()->loadMusic(_game->dataPath() / "music1.ogg");
 
-//	_hitSound       = _game->audio()->loadSound(_game->dataPath() / "hit.ogg");
+	_morningSound      = _game->audio()->loadSound(_game->dataPath() / "morning.ogg");
+	_eveningSound      = _game->audio()->loadSound(_game->dataPath() / "evening.ogg");
+	_eatSound          = _game->audio()->loadSound(_game->dataPath() / "omnomnom.ogg");
+	_drinkSound        = _game->audio()->loadSound(_game->dataPath() / "glouglou.ogg");
+	_discardSound      = _game->audio()->loadSound(_game->dataPath() / "discard.ogg");
+	_blowupSound       = _game->audio()->loadSound(_game->dataPath() / "death.ogg");
+	_vanishSound       = _game->audio()->loadSound(_game->dataPath() / "death.ogg");
+	_starveSound       = _game->audio()->loadSound(_game->dataPath() / "death.ogg");
 
 //	_damageAnim.reset(new MoveAnim(ONE_SEC/2, Vector3(0, 30, 0), RELATIVE));
 //	_damageAnim->onEnd = [this](_Entity* e){ _entities.destroyEntity(EntityRef(e)); };
@@ -449,7 +456,7 @@ void MainState::updateTick() {
 		startGame();
 	}
 
-	if(_state == Dead)
+	if(_state != Playing)
 		return;
 
 	float td = float(_loop.tickDuration()) / ONE_SEC;
@@ -459,6 +466,12 @@ void MainState::updateTick() {
 	{
 		if (_day > _motd.size())
 			return; //FIXME: Congratulations ! You win nothing.
+
+		if (_playOnce)
+		{
+			_game->audio()->playSound(_eveningSound, 0);
+			_playOnce ^= true; //NOTE: Not guilty your honor.
+		}
 
 		if (_drinkInput->justPressed() && _timeOfDay > DAY_LENGTH + MSG_DELAY)
 			_msg++;
@@ -473,6 +486,8 @@ void MainState::updateTick() {
 			_day++;
 			_msg = 0;
 			_timeOfDay = 0;
+			_playOnce ^= true;
+			_game->audio()->playSound(_morningSound, 0);
 		}
 
 		return;
@@ -511,6 +526,8 @@ void MainState::updateTick() {
 			Vector3 pp = _foodEntities[0].transform().translation();
 			createMovingSprite(&_foodsSprite, _foodQueue.front().tileIndex,
 			                   pp, Vector3(- 32, pp.y(), 0), .5);
+			
+			_game->audio()->playSound(_discardSound, 0);
 			_foodQueue.pop_front();
 			_foodQueueOffset += 1;
 			_foodQueue.push_back(randomFood());
@@ -522,12 +539,13 @@ void MainState::updateTick() {
 	{
 		if (_foodLevel < MAX_FOOD)
 		{
-			for (Effect& e : _foodQueue[0].effects)
-				_activeEffects.push_back(e);
-
 			Vector3 pp = _foodEntities[0].transform().translation();
 			createMovingSprite(&_foodsSprite, _foodQueue.front().tileIndex,
 			                   pp, aliceMouthPos(), .5);
+
+			_game->audio()->playSound(_eatSound, 0);
+			for (Effect& e : _foodQueue[0].effects)
+				_activeEffects.push_back(e);
 
 			_foodQueue.pop_front();
 			_foodQueueOffset += 1;
@@ -547,6 +565,8 @@ void MainState::updateTick() {
 			int w = _game->window()->width();
 			createMovingSprite(&_foodsSprite, _drinkQueue.front().tileIndex,
 			                   pp, Vector3(w + 32, pp.y(), 0), .5);
+			
+			_game->audio()->playSound(_discardSound, 0);
 			_drinkQueue.pop_front();
 			_drinkQueueOffset += 1;
 			_drinkQueue.push_back(randomDrink());
@@ -558,12 +578,13 @@ void MainState::updateTick() {
 	{
 		if (_waterLevel < MAX_DRINK)
 		{
-			for (Effect& e : _drinkQueue[0].effects)
-				_activeEffects.push_back(e);
-
 			Vector3 pp = _drinkEntities[0].transform().translation();
 			createMovingSprite(&_foodsSprite, _drinkQueue.front().tileIndex,
 			                   pp, aliceMouthPos(), .5);
+
+			_game->audio()->playSound(_drinkSound, 0);
+			for (Effect& e : _drinkQueue[0].effects)
+				_activeEffects.push_back(e);
 
 			_drinkQueue.pop_front();
 			_drinkQueueOffset += 1;
@@ -574,8 +595,23 @@ void MainState::updateTick() {
 	else if (_drinkDelay >= 0)
 		_drinkDelay += td;
 
-	if(_size <= 0 || _size > MAX_GROWTH || _foodLevel <= 0 || _waterLevel <= 0)
-		_state = Dead;
+	if (_size <= 0)
+	{
+		_game->audio()->playSound(_vanishSound, 0);
+		_state = Vanished;
+	}
+
+	if (_size > MAX_GROWTH)
+	{
+		_game->audio()->playSound(_blowupSound, 0);
+		_state = Blown;
+	}
+
+	if (_foodLevel <= 0 || _waterLevel <= 0)
+	{
+		_game->audio()->playSound(_starveSound, 0);
+		_state = Starved;
+	}
 
 // 	log().info("food: ", _foodLevel, ", water: ", _waterLevel, ", size: ", _size);
 }

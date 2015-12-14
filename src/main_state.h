@@ -150,7 +150,9 @@ public:
 public:
 	enum State {
 		Playing,
-		Dead
+		Vanished,
+		Blown,
+		Starved
 	};
 
 public:
@@ -194,6 +196,16 @@ public:
 	Sprite      _barsSprite;
 	Sprite      _foodsSprite;
 	Sprite      _dnSprite;
+
+	const Sound* _morningSound;
+	const Sound* _eveningSound;
+	const Sound* _eatSound;
+	const Sound* _drinkSound;
+	const Sound* _discardSound;
+	const Sound* _blowupSound;
+	const Sound* _vanishSound;
+	const Sound* _starveSound;
+	bool        _playOnce;
 
 	EntityRef   _bg;
 	EntityRef   _journal;
