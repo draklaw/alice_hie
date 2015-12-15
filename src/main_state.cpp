@@ -122,8 +122,6 @@ void MainState::initialize() {
 	_starvedMsgSprite  = loadSprite("msg_starved.png");
 	_helpSprite        = loadSprite("help.png", 2, 1);
 
-	_music             = _game->audio()->loadMusic(_game->dataPath() / "alice_hie.ogg");
-
 	_morningSound      = _game->audio()->loadSound(_game->dataPath() / "morning.ogg");
 	_eveningSound      = _game->audio()->loadSound(_game->dataPath() / "evening.ogg");
 	_eatSound          = _game->audio()->loadSound(_game->dataPath() / "omnomnom.ogg");
@@ -269,7 +267,7 @@ EntityRef MainState::createSprite(Sprite* sprite, const Vector3& pos,
 	entity.sprite()->setSprite(sprite);
 	entity.sprite()->setIndex(index);
 	entity.place(Translation(pos) * Eigen::Scaling(scale.x(), scale.y(), 1.f));
-	_anims.addComponent(entity);
+	//_anims.addComponent(entity);
 	return entity;
 }
 
@@ -403,7 +401,6 @@ void MainState::startGame() {
 	_lastFrameTime       = _loop.frameTime();
 
 	_playOnce = false;
-	_game->audio()->playMusic(_music);
 
 	_timeOfDay = DAY_LENGTH+.01;
 	_day = _msg = 0;

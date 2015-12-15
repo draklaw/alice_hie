@@ -93,6 +93,7 @@ protected:
 
 	std::unique_ptr<SoundPlayer>
 	              _audio;
+	const Music*  _music;
 
 	GameState*    _nextState;
 	GameState*    _currentState;
