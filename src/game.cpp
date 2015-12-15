@@ -149,6 +149,8 @@ void Game::initialize() {
 
 
 void Game::shutdown() {
+	_audio->releaseMusic(_music);
+
 	_mainState->shutdown();
 	_mainState.reset();
 
