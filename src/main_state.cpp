@@ -500,6 +500,10 @@ Foodstuff MainState::randomDrink ()
 }
 
 void MainState::updateTick() {
+	if(_game->sys()->getKeyState(SDL_SCANCODE_ESCAPE)) {
+		quit();
+	}
+
 	_inputs.sync();
 
 	if(_debugInput->justPressed()) {

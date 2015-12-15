@@ -64,6 +64,9 @@ void ScreenState::run() {
 
 	while(_running) {
 		_game->sys()->waitAndDispatchSystemEvents();
+		if(_game->sys()->getKeyState(SDL_SCANCODE_ESCAPE)) {
+			_running = false;
+		}
 		if(_game->sys()->getKeyState(SDL_SCANCODE_LEFT)
 		|| _game->sys()->getKeyState(SDL_SCANCODE_RIGHT)) {
 			_game->setNextState(_game->mainState());
